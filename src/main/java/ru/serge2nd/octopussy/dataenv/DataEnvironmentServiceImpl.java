@@ -1,5 +1,6 @@
 package ru.serge2nd.octopussy.dataenv;
 
+import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -7,7 +8,6 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.beans.factory.BeanNotOfRequiredTypeException;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
-import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.orm.jpa.JpaVendorAdapter;
@@ -86,17 +86,14 @@ public class DataEnvironmentServiceImpl implements DataEnvironmentService {
         }
     }
 
-    private DataSource buildDataSource(DataEnvironmentDefinition dataEnvironmentDefinition) {
-        HikariDataSource dataSource = DataSourceBuilder.create()
-                .type(HikariDataSource.class)
-                .url(dataEnvironmentDefinition.getUrl())
-                .driverClassName(dataEnvironmentDefinition.getDriverClassName())
-                .username(dataEnvironmentDefinition.getLogin())
-                .password(dataEnvironmentDefinition.getPassword())
-                .build();
+    private DataSource buildDataSource(DataEnvironmentDefinition dataEnvDefinition) {
+        HikariConfig hikariConfig = new HikariConfig(hikariProps);
+        hikariConfig.setJdbcUrl(dataEnvDefinition.getUrl());
+        hikariConfig.setDriverClassName(dataEnvDefinition.getDriverClassName());
+        hikariConfig.setUsername(dataEnvDefinition.getLogin());
+        hikariConfig.setPassword(dataEnvDefinition.getPassword());
 
-        dataSource.setDataSourceProperties(hikariProps);
-        return dataSource;
+        return new HikariDataSource(hikariConfig);
     }
 
     private JpaVendorAdapter buildJpaVendorAdapter(String database) {
