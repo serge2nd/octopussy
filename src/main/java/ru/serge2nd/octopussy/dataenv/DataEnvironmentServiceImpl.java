@@ -26,6 +26,7 @@ import javax.sql.DataSource;
 
 import java.io.IOException;
 import java.util.Collection;
+import java.util.Optional;
 
 import static ru.serge2nd.octopussy.config.CommonConfig.QUERY_ADAPTERS_CACHE;
 
@@ -44,6 +45,15 @@ public class DataEnvironmentServiceImpl implements DataEnvironmentService {
             return ctx.getBean(dataEnvName(envId), DataEnvironment.class);
         } catch (NoSuchBeanDefinitionException | BeanNotOfRequiredTypeException e) {
             throw new DataEnvironmentNotFoundException(envId);
+        }
+    }
+
+    @Override
+    public Optional<DataEnvironment> find(String envId) {
+        try {
+            return Optional.of(ctx.getBean(dataEnvName(envId), DataEnvironment.class));
+        } catch (NoSuchBeanDefinitionException | BeanNotOfRequiredTypeException e) {
+            return Optional.empty();
         }
     }
 
