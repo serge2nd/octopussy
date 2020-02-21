@@ -11,18 +11,19 @@ import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.stereotype.Service;
 
 import java.util.Collection;
+import java.util.function.Supplier;
 
 @Service
 @RequiredArgsConstructor
 public class ApplicationContextAdapterImpl implements ApplicationContextAdapter {
     private final GenericApplicationContext ctx;
 
-    public void addBean(String beanName, Object bean, BeanDefinitionCustomizer... customizers) throws BeanDefinitionStoreException {
+    public <T> void addBean(String beanName, Class<T> clazz, Supplier<T> bean, BeanDefinitionCustomizer... customizers) throws BeanDefinitionStoreException {
         AbstractBeanDefinition bd = BeanDefinitionBuilder
-                .genericBeanDefinition(bean.getClass())
+                .genericBeanDefinition(clazz)
                 .applyCustomizers(customizers)
                 .getRawBeanDefinition();
-        bd.setInstanceSupplier(() -> ctx.getBeanFactory().initializeBean(bean, beanName));
+        bd.setInstanceSupplier(() -> ctx.getBeanFactory().initializeBean(bean.get(), beanName));
 
         ctx.registerBeanDefinition(beanName, bd);
     }
@@ -37,9 +38,5 @@ public class ApplicationContextAdapterImpl implements ApplicationContextAdapter 
 
     public <T> Collection<T> getBeans(Class<T> clazz) {
         return ctx.getBeansOfType(clazz, true, true).values();
-    }
-
-    public boolean containsBean(String beanName) {
-        return ctx.containsBean(beanName);
     }
 }

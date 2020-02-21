@@ -1,7 +1,9 @@
 package ru.serge2nd.octopussy.dataenv;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.*;
+import lombok.Builder;
+import lombok.Value;
+import org.springframework.orm.jpa.vendor.Database;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Pattern;
@@ -13,9 +15,9 @@ public class DataEnvironmentDefinition {
     @Pattern(regexp = "[-_\\p{Alnum}]+")
     String envId;
     @NotBlank
-    String database;
+    Database database;
     @NotBlank
-    String driverClassName;
+    String driverClass;
     @NotBlank
     String url;
     @NotBlank
@@ -26,9 +28,9 @@ public class DataEnvironmentDefinition {
     public DataEnvironmentDefinition(@JsonProperty("envId")
                                              String envId,
                                      @JsonProperty("database")
-                                             String database,
-                                     @JsonProperty("driverClassName")
-                                             String driverClassName,
+                                             Database database,
+                                     @JsonProperty("driverClass")
+                                             String driverClass,
                                      @JsonProperty("url")
                                              String url,
                                      @JsonProperty("login")
@@ -37,7 +39,7 @@ public class DataEnvironmentDefinition {
                                              String password) {
         this.envId = envId;
         this.database = database;
-        this.driverClassName = driverClassName;
+        this.driverClass = driverClass;
         this.url = url;
         this.login = login;
         this.password = password;

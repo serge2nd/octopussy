@@ -9,7 +9,8 @@ import org.springframework.transaction.interceptor.TransactionProxyFactoryBean;
 import ru.serge2nd.octopussy.dataenv.DataEnvironment;
 import ru.serge2nd.octopussy.dataenv.DataEnvironmentService;
 
-import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
+
 import static ru.serge2nd.octopussy.config.CommonConfig.QUERY_ADAPTERS_CACHE;
 
 @Service
@@ -24,11 +25,11 @@ public class NativeQueryAdapterProvider {
     }
 
     private NativeQueryAdapter buildQueryAdapter(DataEnvironment dataEnvironment) {
-        EntityManager entityManager = dataEnvironment.getEntityManager();
+        EntityManagerFactory entityManagerFactory = dataEnvironment.getEntityManagerFactory();
         PlatformTransactionManager transactionManager = dataEnvironment.getTransactionManager();
         TransactionProxyFactoryBean transactionProxyFactoryBean = new TransactionProxyFactoryBean();
 
-        transactionProxyFactoryBean.setTarget(new NativeQueryAdapterImpl(entityManager));
+        transactionProxyFactoryBean.setTarget(new NativeQueryAdapterImpl(entityManagerFactory));
         transactionProxyFactoryBean.setTransactionAttributeSource(new AnnotationTransactionAttributeSource());
         transactionProxyFactoryBean.setTransactionManager(transactionManager);
         transactionProxyFactoryBean.setProxyTargetClass(true);

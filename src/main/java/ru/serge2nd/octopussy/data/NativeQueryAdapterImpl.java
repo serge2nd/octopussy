@@ -6,30 +6,45 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
+import javax.persistence.SynchronizationType;
 import java.sql.Clob;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toList;
 
 @RequiredArgsConstructor
 public class NativeQueryAdapterImpl implements NativeQueryAdapter {
-    private final EntityManager entityManager;
+    private final EntityManagerFactory entityManagerFactory;
 
     @Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+    @SuppressWarnings("unchecked")
     public List<?> execute(String query) {
-        List<?> resultList = entityManager.createNativeQuery(query).getResultList();
-        return resultList.stream()
+        return execute(em -> (List<?>) em
+                .createNativeQuery(query)
+                .getResultList().stream()
                 .map(NativeQueryAdapterImpl::extractRow)
-                .collect(toList());
+                .collect(toList()));
     }
 
     @Transactional
     public int executeUpdate(List<String> queries) {
-        return queries.stream()
-                .mapToInt(query -> entityManager.createNativeQuery(query).executeUpdate())
-                .sum();
+        return execute(em -> queries.stream()
+                .mapToInt(query -> em.createNativeQuery(query).executeUpdate())
+                .sum());
+    }
+
+    private <R> R execute(Function<EntityManager, R> op) {
+        EntityManager em = null;
+        try {
+            em = entityManagerFactory.createEntityManager(SynchronizationType.SYNCHRONIZED);
+            return op.apply(em);
+        } finally {
+            if (em != null) em.close();
+        }
     }
 
     private static Object extractRow(Object row) {

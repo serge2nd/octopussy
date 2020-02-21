@@ -6,17 +6,15 @@ import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.config.BeanDefinitionCustomizer;
 
 import java.util.Collection;
-import java.util.List;
+import java.util.function.Supplier;
 
 public interface ApplicationContextAdapter {
 
-    void addBean(String beanName, Object bean, BeanDefinitionCustomizer... customizers) throws BeanDefinitionStoreException;
+    <T> void addBean(String beanName, Class<T> clazz, Supplier<T> bean, BeanDefinitionCustomizer... customizers) throws BeanDefinitionStoreException;
 
     void removeBean(String beanName) throws NoSuchBeanDefinitionException;
 
     <T> T getBean(String beanName, Class<T> beanClass) throws BeansException;
 
     <T> Collection<T> getBeans(Class<T> clazz);
-
-    boolean containsBean(String beanName);
 }
