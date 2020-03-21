@@ -16,5 +16,5 @@ public interface ApplicationContextAdapter {
 
     <T> T getBean(String beanName, Class<T> beanClass) throws BeansException;
 
-    <T> Collection<T> getBeans(Class<T> clazz);
+    <T> Collection<T> getBeans(Class<T> clazz) throws BeansException;
 }

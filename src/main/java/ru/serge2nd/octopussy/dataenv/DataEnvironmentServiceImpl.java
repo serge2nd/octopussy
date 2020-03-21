@@ -10,6 +10,7 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import ru.serge2nd.octopussy.config.adapter.ApplicationContextAdapter;
 import ru.serge2nd.octopussy.config.properties.HikariProperties;
+import ru.serge2nd.octopussy.config.properties.JpaProperties;
 
 import java.util.Collection;
 import java.util.Optional;
@@ -24,6 +25,7 @@ public class DataEnvironmentServiceImpl implements DataEnvironmentService {
 
     private final ApplicationContextAdapter ctx;
     private final HikariProperties hikariProps;
+    private final JpaProperties jpaProps;
 
     @Override
     public DataEnvironment get(String envId) {
@@ -31,6 +33,8 @@ public class DataEnvironmentServiceImpl implements DataEnvironmentService {
             return ctx.getBean(dataEnvName(envId), DataEnvironment.class);
         } catch (NoSuchBeanDefinitionException | BeanNotOfRequiredTypeException e) {
             throw new DataEnvironmentNotFoundException(envId);
+        } catch (BeansException e) {
+            throw new DataEnvironmentInitException(envId, e);
         }
     }
 
@@ -63,7 +67,7 @@ public class DataEnvironmentServiceImpl implements DataEnvironmentService {
             ctx.addBean(
                     dataEnvName(envId),
                     DataEnvironment.class,
-                    () -> new DataEnvironment(definition, hikariProps),
+                    () -> new DataEnvironment(definition, hikariProps, jpaProps),
                     bd -> bd.setDestroyMethodName("close"));
         } catch (BeanDefinitionStoreException e) {
             throw new DataEnvironmentExistsException(envId);

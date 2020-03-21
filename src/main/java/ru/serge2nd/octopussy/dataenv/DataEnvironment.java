@@ -6,13 +6,15 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.orm.jpa.JpaTransactionManager;
+import org.hibernate.SessionFactory;
+import org.springframework.orm.hibernate5.HibernateTransactionManager;
 import org.springframework.orm.jpa.JpaVendorAdapter;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.orm.jpa.vendor.Database;
 import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.transaction.PlatformTransactionManager;
 import ru.serge2nd.octopussy.config.properties.HikariProperties;
+import ru.serge2nd.octopussy.config.properties.JpaProperties;
 
 import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
@@ -29,11 +31,11 @@ public class DataEnvironment implements Closeable {
     private final EntityManagerFactory entityManagerFactory;
     private final PlatformTransactionManager transactionManager;
 
-    public DataEnvironment(DataEnvironmentDefinition definition, HikariProperties hikariProps) {
+    public DataEnvironment(DataEnvironmentDefinition definition, HikariProperties hikariProps, JpaProperties jpaProps) {
         this.definition = definition;
         try {
             this.dataSource = buildDataSource(hikariProps);
-            this.entityManagerFactory = buildEntityManagerFactory(buildJpaVendorAdapter(definition.getDatabase()));
+            this.entityManagerFactory = buildEntityManagerFactory(buildJpaVendorAdapter(definition.getDatabase()), jpaProps);
             this.transactionManager = buildTransactionManager();
         } catch (Exception e) {
             tryClose();
@@ -57,21 +59,22 @@ public class DataEnvironment implements Closeable {
         return jpaVendorAdapter;
     }
 
-    private EntityManagerFactory buildEntityManagerFactory(JpaVendorAdapter jpaVendorAdapter) {
+    private EntityManagerFactory buildEntityManagerFactory(JpaVendorAdapter jpaVendorAdapter, JpaProperties jpaProps) {
         LocalContainerEntityManagerFactoryBean emf = new LocalContainerEntityManagerFactoryBean();
 
         emf.setDataSource(dataSource);
         emf.setJpaVendorAdapter(jpaVendorAdapter);
-        emf.setPersistenceUnitName(definition.getEnvId() + "PersistenceUnit");
+        emf.setPersistenceUnitName(definition.getEnvId() + "PU");
         emf.setPackagesToScan("ru.serge2nd.octopussy.data");
+        emf.setJpaProperties(jpaProps);
 
         emf.afterPropertiesSet();
         return emf.getObject();
     }
 
     private PlatformTransactionManager buildTransactionManager() {
-        JpaTransactionManager transactionManager = new JpaTransactionManager();
-        transactionManager.setEntityManagerFactory(entityManagerFactory);
+        HibernateTransactionManager transactionManager = new HibernateTransactionManager();
+        transactionManager.setSessionFactory(entityManagerFactory.unwrap(SessionFactory.class));
         return transactionManager;
     }
 

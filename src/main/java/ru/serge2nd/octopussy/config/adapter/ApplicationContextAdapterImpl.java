@@ -36,7 +36,7 @@ public class ApplicationContextAdapterImpl implements ApplicationContextAdapter 
         return ctx.getBean(beanName, beanClass);
     }
 
-    public <T> Collection<T> getBeans(Class<T> clazz) {
+    public <T> Collection<T> getBeans(Class<T> clazz) throws BeansException {
         return ctx.getBeansOfType(clazz, true, true).values();
     }
 }
