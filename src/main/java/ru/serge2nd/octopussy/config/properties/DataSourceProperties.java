@@ -7,5 +7,5 @@ import java.util.Properties;
 
 @Component
 @ConfigurationProperties("spring.datasource.hikari")
-public class HikariProperties extends Properties {
+public class DataSourceProperties extends Properties {
 }

@@ -8,9 +8,8 @@ import org.springframework.beans.factory.BeanNotOfRequiredTypeException;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
+import ru.serge2nd.octopussy.config.spi.DataSourceProvider;
 import ru.serge2nd.octopussy.config.adapter.ApplicationContextAdapter;
-import ru.serge2nd.octopussy.config.properties.HikariProperties;
-import ru.serge2nd.octopussy.config.properties.JpaProperties;
 
 import java.util.Collection;
 import java.util.Optional;
@@ -24,8 +23,7 @@ public class DataEnvironmentServiceImpl implements DataEnvironmentService {
     private static final String DATA_ENV_SUFFIX = "DataEnvironment";
 
     private final ApplicationContextAdapter ctx;
-    private final HikariProperties hikariProps;
-    private final JpaProperties jpaProps;
+    private final DataSourceProvider dataSourceProvider;
 
     @Override
     public DataEnvironment get(String envId) {
@@ -67,7 +65,7 @@ public class DataEnvironmentServiceImpl implements DataEnvironmentService {
             ctx.addBean(
                     dataEnvName(envId),
                     DataEnvironment.class,
-                    () -> new DataEnvironment(definition, hikariProps, jpaProps),
+                    () -> new DataEnvironment(definition, dataSourceProvider),
                     bd -> bd.setDestroyMethodName("close"));
         } catch (BeanDefinitionStoreException e) {
             throw new DataEnvironmentExistsException(envId);

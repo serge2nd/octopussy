@@ -1,25 +1,17 @@
 package ru.serge2nd.octopussy.dataenv;
 
-import com.zaxxer.hikari.HikariConfig;
-import com.zaxxer.hikari.HikariDataSource;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.SessionFactory;
-import org.springframework.orm.hibernate5.HibernateTransactionManager;
-import org.springframework.orm.jpa.JpaVendorAdapter;
-import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
-import org.springframework.orm.jpa.vendor.Database;
-import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.transaction.PlatformTransactionManager;
-import ru.serge2nd.octopussy.config.properties.HikariProperties;
-import ru.serge2nd.octopussy.config.properties.JpaProperties;
+import ru.serge2nd.octopussy.config.spi.DataSourceProvider;
 
 import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
 import java.io.Closeable;
 import java.io.IOException;
+import java.util.Properties;
 
 @Slf4j
 @Getter
@@ -31,51 +23,24 @@ public class DataEnvironment implements Closeable {
     private final EntityManagerFactory entityManagerFactory;
     private final PlatformTransactionManager transactionManager;
 
-    public DataEnvironment(DataEnvironmentDefinition definition, HikariProperties hikariProps, JpaProperties jpaProps) {
+    public DataEnvironment(DataEnvironmentDefinition definition, DataSourceProvider provider) {
         this.definition = definition;
         try {
-            this.dataSource = buildDataSource(hikariProps);
-            this.entityManagerFactory = buildEntityManagerFactory(buildJpaVendorAdapter(definition.getDatabase()), jpaProps);
-            this.transactionManager = buildTransactionManager();
+            this.dataSource = provider.getDataSource(new Properties() {{
+                setProperty(provider.driverClassPropertyName(), definition.getDriverClass());
+                setProperty(provider.urlPropertyName(), definition.getUrl());
+                setProperty(provider.loginPropertyName(), definition.getLogin());
+                setProperty(provider.passwordPropertyName(), definition.getPassword());
+            }});
+            this.entityManagerFactory = provider.getEntityManagerFactory(this.dataSource, new Properties() {{
+                setProperty(provider.dbPropertyName(), definition.getDatabase().toString());
+                setProperty(provider.envIdPropertyName(), definition.getEnvId());
+            }});
+            this.transactionManager = provider.getTransactionManager(this.entityManagerFactory);
         } catch (Exception e) {
             tryClose();
             throw e;
         }
-    }
-
-    private DataSource buildDataSource(HikariProperties hikariProps) {
-        HikariConfig hikariConfig = new HikariConfig(hikariProps);
-        hikariConfig.setJdbcUrl(definition.getUrl());
-        hikariConfig.setDriverClassName(definition.getDriverClass());
-        hikariConfig.setUsername(definition.getLogin());
-        hikariConfig.setPassword(definition.getPassword());
-
-        return new HikariDataSource(hikariConfig);
-    }
-
-    private JpaVendorAdapter buildJpaVendorAdapter(Database database) {
-        HibernateJpaVendorAdapter jpaVendorAdapter = new HibernateJpaVendorAdapter();
-        jpaVendorAdapter.setDatabase(database);
-        return jpaVendorAdapter;
-    }
-
-    private EntityManagerFactory buildEntityManagerFactory(JpaVendorAdapter jpaVendorAdapter, JpaProperties jpaProps) {
-        LocalContainerEntityManagerFactoryBean emf = new LocalContainerEntityManagerFactoryBean();
-
-        emf.setDataSource(dataSource);
-        emf.setJpaVendorAdapter(jpaVendorAdapter);
-        emf.setPersistenceUnitName(definition.getEnvId() + "PU");
-        emf.setPackagesToScan("ru.serge2nd.octopussy.data");
-        emf.setJpaProperties(jpaProps);
-
-        emf.afterPropertiesSet();
-        return emf.getObject();
-    }
-
-    private PlatformTransactionManager buildTransactionManager() {
-        HibernateTransactionManager transactionManager = new HibernateTransactionManager();
-        transactionManager.setSessionFactory(entityManagerFactory.unwrap(SessionFactory.class));
-        return transactionManager;
     }
 
     public void tryClose() {

@@ -62,9 +62,9 @@ class DataEnvironmentServiceImplContextTest {
         dataEnvService.create(DataEnvironment.builder()
                 .definition(DataEnvironmentDefinition.builder()
                         .envId(envId)
-                        .url(url)
                         .database(Database.H2)
                         .driverClass(Driver.class.getName())
+                        .url(url).login("").password("")
                         .build())
                 .build());
     }
