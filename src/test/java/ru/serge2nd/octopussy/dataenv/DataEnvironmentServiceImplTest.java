@@ -12,8 +12,6 @@ import org.springframework.beans.factory.BeanNotOfRequiredTypeException;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.config.BeanDefinitionCustomizer;
 import ru.serge2nd.octopussy.config.adapter.ApplicationContextAdapter;
-import ru.serge2nd.octopussy.config.properties.HikariProperties;
-import ru.serge2nd.octopussy.config.properties.JpaProperties;
 
 import java.util.Collection;
 import java.util.Optional;
@@ -34,10 +32,6 @@ public class DataEnvironmentServiceImplTest {
     private DataEnvironmentServiceImpl dataEnvService;
     @Mock
     private ApplicationContextAdapter ctxMock;
-    @Mock
-    private HikariProperties hikariPropsMock;
-    @Mock
-    private JpaProperties jpaPropsMock;
 
     @Test
     void testGet() {
