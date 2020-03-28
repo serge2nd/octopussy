@@ -8,13 +8,14 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cache.Cache;
-import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.ComponentScan.Filter;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.orm.hibernate5.HibernateTransactionManager;
 import org.springframework.orm.jpa.vendor.Database;
 import org.springframework.test.context.ActiveProfiles;
 import ru.serge2nd.octopussy.config.WebConfig;
@@ -30,13 +31,11 @@ import static java.lang.String.format;
 import static java.lang.System.identityHashCode;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
-import static java.util.Objects.requireNonNull;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.Mockito.mock;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.NONE;
 import static org.springframework.context.annotation.FilterType.ASSIGNABLE_TYPE;
-import static ru.serge2nd.octopussy.config.CommonConfig.QUERY_ADAPTERS_CACHE;
 
 @SpringBootTest(
         classes = DataEnvironmentServiceImplContextTest.Config.class,
@@ -51,8 +50,8 @@ class DataEnvironmentServiceImplContextTest {
 
     @Autowired
     private DataEnvironmentServiceImpl dataEnvService;
-    @Autowired
-    private CacheManager cacheManager;
+    @Value("#{cacheManager.getCache('nativeQueryAdapters')}")
+    private Cache queryAdaptersCache;
 
     @BeforeEach
     void setUp() {
@@ -129,16 +128,13 @@ class DataEnvironmentServiceImplContextTest {
     void testRemoveCacheEvict() {
         // GIVEN
         createDataEnvs(ID1);
-        Cache cache = requireNonNull(
-                cacheManager.getCache(QUERY_ADAPTERS_CACHE),
-                "query adapters cache not found");
-        cache.put(ID1, mock(NativeQueryAdapter.class));
+        queryAdaptersCache.put(ID1, mock(NativeQueryAdapter.class));
 
         // WHEN
         dataEnvService.delete(ID1);
 
         // THEN
-        assertNull(cache.get(ID1), "cached still exists");
+        assertNull(queryAdaptersCache.get(ID1), "cached still exists");
     }
 
     private void createDataEnvs(String... envIds) {
@@ -168,7 +164,7 @@ class DataEnvironmentServiceImplContextTest {
         assertNotNull(dataEnv.getEntityManagerFactory(), format("no EMF for %s", envId));
         assertTrue(dataEnv.getEntityManagerFactory().isOpen(), format("inactive EMF for %s", envId));
         // AND
-        assertNotNull(dataEnv.getTransactionManager(), format("no TM for %s", envId));
+        assertTrue(dataEnv.getTransactionManager() instanceof HibernateTransactionManager, format("no TM for %s", envId));
         // AND
         DataEnvironment[] matched = all.stream()
                 .filter(elem -> dataEnv == elem)
