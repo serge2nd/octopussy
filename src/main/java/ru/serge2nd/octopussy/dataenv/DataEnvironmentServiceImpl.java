@@ -75,7 +75,7 @@ public class DataEnvironmentServiceImpl implements DataEnvironmentService {
     }
 
     @Override
-    @CacheEvict(QUERY_ADAPTERS_CACHE)
+    @CacheEvict(value = QUERY_ADAPTERS_CACHE, beforeInvocation = true)
     public void delete(String envId) {
         try {
             ctx.removeBean(dataEnvName(envId));

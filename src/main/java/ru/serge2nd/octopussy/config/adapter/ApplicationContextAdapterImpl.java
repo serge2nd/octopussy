@@ -37,6 +37,6 @@ public class ApplicationContextAdapterImpl implements ApplicationContextAdapter 
     }
 
     public <T> Collection<T> getBeans(Class<T> clazz) throws BeansException {
-        return ctx.getBeansOfType(clazz, true, true).values();
+        return ctx.getBeansOfType(clazz, false, false).values();
     }
 }
