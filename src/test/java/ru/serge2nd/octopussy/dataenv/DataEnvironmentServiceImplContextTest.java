@@ -137,20 +137,6 @@ class DataEnvironmentServiceImplContextTest {
         assertNull(queryAdaptersCache.get(ID1), "cached still exists");
     }
 
-    private void createDataEnvs(String... envIds) {
-        Arrays.stream(envIds).forEach(envId ->
-            dataEnvService.create(DataEnvironment.builder()
-                .definition(DataEnvironmentDefinition.builder()
-                        .envId(envId)
-                        .database(Database.H2)
-                        .driverClass(Driver.class.getName())
-                        .url(URL_PREFIX + envId)
-                        .login(LOGIN_PREFIX + envId)
-                        .password(PASSWORD_PREFIX + envId)
-                        .build())
-                .build()));
-    }
-
     private void checkConsistency(String envId, Collection<DataEnvironment> all) throws SQLException {
         DataEnvironment dataEnv = dataEnvService.get(envId);
         assertEquals(envId, dataEnv.getDefinition().getEnvId(), format("expected env %s", envId));
@@ -171,6 +157,20 @@ class DataEnvironmentServiceImplContextTest {
                 .toArray(DataEnvironment[]::new);
         assertEquals(1, matched.length, format("not exactly one %s", envId));
         assertSame(dataEnv, matched[0], format("not same as returned by id %s", envId));
+    }
+
+    private void createDataEnvs(String... envIds) {
+        Arrays.stream(envIds).forEach(envId ->
+            dataEnvService.create(DataEnvironment.builder()
+                .definition(DataEnvironmentDefinition.builder()
+                        .envId(envId)
+                        .database(Database.H2)
+                        .driverClass(Driver.class.getName())
+                        .url(URL_PREFIX + envId)
+                        .login(LOGIN_PREFIX + envId)
+                        .password(PASSWORD_PREFIX + envId)
+                        .build())
+                .build()));
     }
 
     @Configuration

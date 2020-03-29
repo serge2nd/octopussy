@@ -85,7 +85,7 @@ class NativeQueryAdapterProviderTest {
 
         // THEN
         assertSame(queryAdapterMock, queryAdapter, "expected cached object");
-        verifyZeroInteractions(envServiceMock);
+        verifyNoInteractions(envServiceMock);
     }
 
     @Test

@@ -61,7 +61,7 @@ class ApplicationContextAdapterImplTest {
         BeanDefinition bd = ctx.getBeanDefinition(BEAN_NAME1);
         assertTrue(bd.isSingleton(), "expected singleton");
         assertEquals(beanClass.getName(), bd.getBeanClassName(), "class should match");
-        verifyZeroInteractions(supplierMock);
+        verifyNoInteractions(supplierMock);
     }
 
     @Test
@@ -88,7 +88,7 @@ class ApplicationContextAdapterImplTest {
 
         // THEN
         assertFalse(ctx.containsBeanDefinition(BEAN_NAME1));
-        verifyZeroInteractions(supplierMock);
+        verifyNoInteractions(supplierMock);
     }
 
     @Test

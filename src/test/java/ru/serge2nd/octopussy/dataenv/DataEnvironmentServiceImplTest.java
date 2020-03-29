@@ -18,6 +18,7 @@ import java.util.Optional;
 import java.util.function.Supplier;
 
 import static java.util.Collections.emptyList;
+import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -52,18 +53,13 @@ public class DataEnvironmentServiceImplTest {
         doThrow(NoSuchBeanDefinitionException.class).when(ctxMock).getBean(NAME1, DataEnvironment.class);
         doThrow(BeanNotOfRequiredTypeException.class).when(ctxMock).getBean(NAME2, DataEnvironment.class);
 
-        // EXPECT
-        assertThrows(
-                DataEnvironmentNotFoundException.class,
-                // WHEN
-                () -> dataEnvService.get(ID1),
-                "expected not found");
-        // EXPECT
-        assertThrows(
-                DataEnvironmentNotFoundException.class,
-                // WHEN
-                () -> dataEnvService.get(ID2),
-                "expected not found");
+        // WHEN
+        Throwable thrown1 = catchThrowable(() -> dataEnvService.get(ID1));
+        Throwable thrown2 = catchThrowable(() -> dataEnvService.get(ID2));
+
+        // THEN
+        assertTrue(thrown1 instanceof DataEnvironmentNotFoundException, "expected error due to absence");
+        assertTrue(thrown2 instanceof DataEnvironmentNotFoundException, "expected error due to absence");
     }
 
     @Test
@@ -71,12 +67,11 @@ public class DataEnvironmentServiceImplTest {
         // GIVEN
         when(ctxMock.getBean(NAME1, DataEnvironment.class)).thenThrow(new BeansException("") {});
 
-        // EXPECT
-        assertThrows(
-                DataEnvironmentInitException.class,
-                // WHEN
-                () -> dataEnvService.get(ID1),
-                "expected failed initialization");
+        // WHEN
+        Throwable thrown = catchThrowable(() -> dataEnvService.get(ID1));
+
+        // THEN
+        assertTrue(thrown instanceof DataEnvironmentInitException, "expected failed initialization");
     }
 
     @Test
@@ -112,12 +107,11 @@ public class DataEnvironmentServiceImplTest {
         // GIVEN
         when(ctxMock.getBean(NAME1, DataEnvironment.class)).thenThrow(new BeansException("") {});
 
-        // EXPECT
-        assertThrows(
-                DataEnvironmentInitException.class,
-                // WHEN
-                () -> dataEnvService.find(ID1),
-                "expected failed initialization");
+        // WHEN
+        Throwable thrown = catchThrowable(() -> dataEnvService.get(ID1));
+
+        // THEN
+        assertTrue(thrown instanceof DataEnvironmentInitException, "expected failed initialization");
     }
 
     @Test
@@ -137,12 +131,11 @@ public class DataEnvironmentServiceImplTest {
         // GIVEN
         when(ctxMock.getBeans(DataEnvironment.class)).thenThrow(new BeansException("") {});
 
-        // EXPECT
-        assertThrows(
-                DataEnvironmentInitException.class,
-                // WHEN
-                () -> dataEnvService.getAll(),
-                "expected failed initialization");
+        // WHEN
+        Throwable thrown = catchThrowable(() -> dataEnvService.getAll());
+
+        // THEN
+        assertTrue(thrown instanceof DataEnvironmentInitException, "expected failed initialization");
     }
 
     @Test
@@ -174,12 +167,11 @@ public class DataEnvironmentServiceImplTest {
         // GIVEN
         doThrow(BeanDefinitionStoreException.class).when(ctxMock).addBean(eq(NAME1), same(DataEnvironment.class), any(), any());
 
-        // EXPECT
-        assertThrows(
-                DataEnvironmentExistsException.class,
-                // WHEN
-                () -> dataEnvService.create(dataEnv(ID1)),
-                "expected already exists");
+        // WHEN
+        Throwable thrown = catchThrowable(() -> dataEnvService.create(dataEnv(ID1)));
+
+        // THEN
+        assertTrue(thrown instanceof DataEnvironmentExistsException, "expected already exists");
     }
 
     @Test
@@ -196,12 +188,11 @@ public class DataEnvironmentServiceImplTest {
         // GIVEN
         doThrow(NoSuchBeanDefinitionException.class).when(ctxMock).removeBean(NAME1);
 
-        // EXPECT
-        assertThrows(
-                DataEnvironmentNotFoundException.class,
-                // WHEN
-                () -> dataEnvService.delete(ID1),
-                "expected not found");
+        // WHEN
+        Throwable thrown = catchThrowable(() -> dataEnvService.delete(ID1));
+
+        // THEN
+        assertTrue(thrown instanceof DataEnvironmentNotFoundException, "expected not found");
     }
 
     private static DataEnvironment dataEnv(String envId) {
