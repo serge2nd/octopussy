@@ -8,8 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.SynchronizationType;
-import java.sql.Clob;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Stream;
@@ -50,7 +49,7 @@ public class NativeQueryAdapterImpl implements NativeQueryAdapter {
     private static Object extractRow(Object row) {
         if (row instanceof Object[]) {
             return Stream.of((Object[])row)
-                    .map(NativeQueryAdapterImpl::extractValue)
+                    .map(NativeQueryAdapterImpl::extractRow)
                     .collect(toList());
         }
 
@@ -58,15 +57,33 @@ public class NativeQueryAdapterImpl implements NativeQueryAdapter {
     }
 
     private static Object extractValue(Object cell) {
-        if (!(cell instanceof Clob))
-            return cell;
+        if (cell instanceof Time)
+            return ((Time)cell).toLocalTime();
+        if (cell instanceof Date)
+            return ((Date)cell).toLocalDate();
+        if (cell instanceof Timestamp)
+            return ((Timestamp)cell).toLocalDateTime();
+        if (cell instanceof Clob)
+            return extractLob((Clob)cell);
+        if (cell instanceof Blob)
+            return extractLob((Blob)cell);
 
-        Clob clob = (Clob) cell;
+        return cell;
+    }
 
+    private static String extractLob(Clob clob) {
         try {
             return clob.getSubString(1, (int)clob.length());
         } catch (SQLException e) {
-            throw new DataRetrievalFailureException("cannot obtain LOB", e);
+            throw new DataRetrievalFailureException("cannot fetch LOB", e);
+        }
+    }
+
+    private static byte[] extractLob(Blob blob) {
+        try {
+            return blob.getBytes(1, (int)blob.length());
+        } catch (SQLException e) {
+            throw new DataRetrievalFailureException("cannot fetch LOB", e);
         }
     }
 }
