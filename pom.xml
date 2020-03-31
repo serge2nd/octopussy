@@ -29,6 +29,10 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
+            <exclusions>
+                <exclusion><groupId>junit</groupId><artifactId>*</artifactId></exclusion>
+                <exclusion><groupId>org.junit.vintage</groupId><artifactId>*</artifactId></exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>com.h2database</groupId>

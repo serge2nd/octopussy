@@ -13,6 +13,7 @@ import org.springframework.cache.Cache;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.ComponentScan.Filter;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
 import ru.serge2nd.octopussy.config.WebConfig;
@@ -35,6 +36,7 @@ import static org.springframework.transaction.TransactionDefinition.*;
         NativeQueryAdapterProviderTest.Config.class,
         NativeQueryAdapterProvider.class},
         webEnvironment = NONE)
+@ActiveProfiles("test")
 class NativeQueryAdapterProviderTest {
     private static final String ID = "5000";
     private static final String Q = "not executed";
