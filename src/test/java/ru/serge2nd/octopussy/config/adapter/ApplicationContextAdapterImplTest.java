@@ -29,20 +29,24 @@ import static org.springframework.context.annotation.FilterType.ASSIGNABLE_TYPE;
         webEnvironment = NONE)
 @ActiveProfiles("test")
 class ApplicationContextAdapterImplTest {
-    private static final String BEAN_NAME1 = "runnable1";
-    private static final String BEAN_NAME2 = "runnable2";
-    private static final String METHOD_NAME = "run";
+    static final String BEAN_NAME1 = "runnable1";
+    static final String BEAN_NAME2 = "runnable2";
+    static final String METHOD_NAME = "run";
+
+    final ApplicationContextAdapterImpl adapter;
+    final GenericApplicationContext ctx;
 
     @Autowired
-    private ApplicationContextAdapterImpl adapter;
-    @Autowired
-    private GenericApplicationContext ctx;
+    ApplicationContextAdapterImplTest(
+            GenericApplicationContext ctx,
+            ApplicationContextAdapterFactory factory) {
+        this.ctx = ctx;
+        this.adapter = (ApplicationContextAdapterImpl) factory.apply(ctx);
+    }
 
-    @Mock
-    private Supplier<Runnable> supplierMock;
-    @Mock
-    private Runnable beanMock;
-    private final Class<Runnable> beanClass = Runnable.class;
+    @Mock Supplier<Runnable> supplierMock;
+    @Mock Runnable beanMock;
+    final Class<Runnable> beanClass = Runnable.class;
 
     @BeforeEach
     void setUp() {
@@ -55,7 +59,10 @@ class ApplicationContextAdapterImplTest {
     @Test
     void testAddBean() {
         // WHEN
-        adapter.addBean(BEAN_NAME1, beanClass, supplierMock);
+        adapter.addBean(BeanCfg.of(beanClass)
+                .name(BEAN_NAME1)
+                .supplier(supplierMock)
+                .build());
 
         // THEN
         BeanDefinition bd = ctx.getBeanDefinition(BEAN_NAME1);
@@ -67,7 +74,11 @@ class ApplicationContextAdapterImplTest {
     @Test
     void testRemoveBean() {
         // GIVEN
-        adapter.addBean(BEAN_NAME1, beanClass, () -> beanMock, bd -> bd.setDestroyMethodName(METHOD_NAME));
+        adapter.addBean(BeanCfg.of(beanClass)
+                .name(BEAN_NAME1)
+                .supplier(() -> beanMock)
+                .destroyMethod(METHOD_NAME)
+                .build());
         ctx.getBean(BEAN_NAME1);
 
         // WHEN
@@ -81,7 +92,10 @@ class ApplicationContextAdapterImplTest {
     @Test
     void testRemoveBeanNoInit() {
         // GIVEN
-        adapter.addBean(BEAN_NAME1, beanClass, supplierMock);
+        adapter.addBean(BeanCfg.of(beanClass)
+                .name(BEAN_NAME1)
+                .supplier(supplierMock)
+                .build());
 
         // WHEN
         adapter.removeBean(BEAN_NAME1);
@@ -94,7 +108,11 @@ class ApplicationContextAdapterImplTest {
     @Test
     void testGetBean() {
         // GIVEN
-        adapter.addBean(BEAN_NAME1, beanClass, () -> beanMock, bd -> bd.setInitMethodName(METHOD_NAME));
+        adapter.addBean(BeanCfg.of(beanClass)
+                .name(BEAN_NAME1)
+                .supplier(() -> beanMock)
+                .initMethod(METHOD_NAME)
+                .build());
 
         // WHEN
         Object bean = adapter.getBean(BEAN_NAME1, beanClass);
@@ -107,7 +125,10 @@ class ApplicationContextAdapterImplTest {
     @Test
     void testGetBeanSupplyingFailed() {
         // GIVEN
-        adapter.addBean(BEAN_NAME1, beanClass, () -> {throw new RuntimeException();});
+        adapter.addBean(BeanCfg.of(beanClass)
+                .name(BEAN_NAME1)
+                .supplier(() -> {throw new RuntimeException();})
+                .build());
 
         // EXPECT
         assertThrows(
@@ -121,8 +142,14 @@ class ApplicationContextAdapterImplTest {
     void testGetAllBeans() {
         // GIVEN
         Runnable beanMock2 = mock(beanClass);
-        adapter.addBean(BEAN_NAME1, beanClass, () -> beanMock);
-        adapter.addBean(BEAN_NAME2, beanClass, () -> beanMock2);
+        adapter.addBean(BeanCfg.of(beanClass)
+                .name(BEAN_NAME1)
+                .supplier(() -> beanMock)
+                .build());
+        adapter.addBean(BeanCfg.of(beanClass)
+                .name(BEAN_NAME2)
+                .supplier(() -> beanMock2)
+                .build());
 
         // WHEN
         Collection<Runnable> beans = adapter.getBeans(beanClass);
@@ -136,8 +163,14 @@ class ApplicationContextAdapterImplTest {
     @Test
     void testGetAllBeansSupplyingFailed() {
         // GIVEN
-        adapter.addBean(BEAN_NAME1, beanClass, () -> beanMock);
-        adapter.addBean(BEAN_NAME2, beanClass, () -> {throw new RuntimeException();});
+        adapter.addBean(BeanCfg.of(beanClass)
+                .name(BEAN_NAME1)
+                .supplier(() -> beanMock)
+                .build());
+        adapter.addBean(BeanCfg.of(beanClass)
+                .name(BEAN_NAME2)
+                .supplier(() -> {throw new RuntimeException();})
+                .build());
 
         // EXPECT
         assertThrows(

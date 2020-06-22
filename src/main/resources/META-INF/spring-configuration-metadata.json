@@ -1,0 +1,24 @@
+{
+  "properties": [
+    {
+      "name": "octopussy.data.env.arg.mapping.driverClass",
+      "type": "java.lang.String",
+      "description": "Map the app driverClass property to corresponding data source property."
+    },
+    {
+      "name": "octopussy.data.env.arg.mapping.url",
+      "type": "java.lang.String",
+      "description": "Map the app url property to corresponding data source property."
+    },
+    {
+      "name": "octopussy.data.env.arg.mapping.login",
+      "type": "java.lang.String",
+      "description": "Map the app login property to corresponding data source property."
+    },
+    {
+      "name": "octopussy.data.env.arg.mapping.password",
+      "type": "java.lang.String",
+      "description": "Map the app password property to corresponding data source property."
+    }
+  ]
+}

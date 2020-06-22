@@ -1,29 +1,40 @@
 package ru.serge2nd.octopussy.dataenv;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.beans.factory.BeanNotOfRequiredTypeException;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.stereotype.Service;
+import ru.serge2nd.octopussy.config.adapter.ApplicationContextAdapterFactory;
+import ru.serge2nd.octopussy.config.adapter.BeanCfg;
 import ru.serge2nd.octopussy.config.spi.DataSourceProvider;
 import ru.serge2nd.octopussy.config.adapter.ApplicationContextAdapter;
 
 import java.util.Collection;
 import java.util.Optional;
 
+import static ru.serge2nd.octopussy.config.CommonConfig.DATA_ENV_CTX;
 import static ru.serge2nd.octopussy.config.CommonConfig.QUERY_ADAPTERS_CACHE;
 
 @Service
-@RequiredArgsConstructor
 @Slf4j
 public class DataEnvironmentServiceImpl implements DataEnvironmentService {
     private static final String DATA_ENV_SUFFIX = "DataEnvironment";
 
     private final ApplicationContextAdapter ctx;
     private final DataSourceProvider dataSourceProvider;
+
+    public DataEnvironmentServiceImpl(
+            @Qualifier(DATA_ENV_CTX) GenericApplicationContext ctx,
+            DataSourceProvider dataSourceProvider,
+            ApplicationContextAdapterFactory factory) {
+        this.ctx = factory.apply(ctx);
+        this.dataSourceProvider = dataSourceProvider;
+    }
 
     @Override
     public DataEnvironment get(String envId) {
@@ -62,11 +73,11 @@ public class DataEnvironmentServiceImpl implements DataEnvironmentService {
         String envId = definition.getEnvId();
 
         try {
-            ctx.addBean(
-                    dataEnvName(envId),
-                    DataEnvironment.class,
-                    () -> new DataEnvironment(definition, dataSourceProvider),
-                    bd -> bd.setDestroyMethodName("close"));
+            ctx.addBean(BeanCfg.of(DataEnvironment.class)
+                    .name(dataEnvName(envId))
+                    .supplier(() -> new DataEnvironment(definition, dataSourceProvider))
+                    .destroyMethod("close")
+                    .build());
         } catch (BeanDefinitionStoreException e) {
             throw new DataEnvironmentExistsException(envId);
         }

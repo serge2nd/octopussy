@@ -11,7 +11,10 @@ import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
 import java.io.Closeable;
 import java.io.IOException;
+import java.util.Map;
 import java.util.Properties;
+
+import static ru.serge2nd.octopussy.config.CommonConfig.*;
 
 @Slf4j
 @Getter
@@ -25,16 +28,17 @@ public class DataEnvironment implements Closeable {
 
     public DataEnvironment(DataEnvironmentDefinition definition, DataSourceProvider provider) {
         this.definition = definition;
+        Map<String, String> propNames = provider.getPropertyNames();
         try {
             this.dataSource = provider.getDataSource(new Properties() {{
-                setProperty(provider.driverClassPropertyName(), definition.getDriverClass());
-                setProperty(provider.urlPropertyName(), definition.getUrl());
-                setProperty(provider.loginPropertyName(), definition.getLogin());
-                setProperty(provider.passwordPropertyName(), definition.getPassword());
+                set(DATA_ENV_DRIVER_CLASS, definition.getDriverClass(),  propNames, this);
+                set(DATA_ENV_URL         , definition.getUrl(),          propNames, this);
+                set(DATA_ENV_LOGIN       , definition.getLogin(),        propNames, this);
+                set(DATA_ENV_PASSWORD    , definition.getPassword(),     propNames, this);
             }});
             this.entityManagerFactory = provider.getEntityManagerFactory(this.dataSource, new Properties() {{
-                setProperty(provider.dbPropertyName(), definition.getDatabase().toString());
-                setProperty(provider.envIdPropertyName(), definition.getEnvId());
+                setProperty(DATA_ENV_DB, definition.getDatabase().toString());
+                setProperty(DATA_ENV_ID, definition.getEnvId());
             }});
             this.transactionManager = provider.getTransactionManager(this.entityManagerFactory);
         } catch (Exception e) {
@@ -58,5 +62,9 @@ public class DataEnvironment implements Closeable {
         if (dataSource instanceof Closeable) {
             ((Closeable)dataSource).close();
         }
+    }
+
+    private static void set(String mapKey, String value, Map<String, String> map, Properties target) {
+        target.setProperty(map.get(mapKey), value);
     }
 }

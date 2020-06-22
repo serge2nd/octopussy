@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cache.Cache;
+import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.ComponentScan.Filter;
 import org.springframework.context.annotation.Configuration;
@@ -174,6 +175,7 @@ class DataEnvironmentServiceImplContextTest {
     }
 
     @Configuration
+    @EnableCaching
     @EnableAutoConfiguration
     @ComponentScan(value = {
             "ru.serge2nd.octopussy.config",

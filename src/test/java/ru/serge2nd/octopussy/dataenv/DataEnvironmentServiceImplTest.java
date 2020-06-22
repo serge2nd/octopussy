@@ -1,17 +1,18 @@
 package ru.serge2nd.octopussy.dataenv;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.beans.factory.BeanNotOfRequiredTypeException;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
-import org.springframework.beans.factory.config.BeanDefinitionCustomizer;
 import ru.serge2nd.octopussy.config.adapter.ApplicationContextAdapter;
+import ru.serge2nd.octopussy.config.adapter.BeanCfg;
+import ru.serge2nd.octopussy.config.spi.DataSourceProvider;
 
 import java.util.Collection;
 import java.util.Optional;
@@ -24,15 +25,20 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 public class DataEnvironmentServiceImplTest {
-    private static final String ID1 = "5010";
-    private static final String ID2 = "7010";
-    private static final String NAME1 = ID1 + "DataEnvironment";
-    private static final String NAME2 = ID2 + "DataEnvironment";
+    static final String ID1 = "5010";
+    static final String ID2 = "7010";
+    static final String NAME1 = ID1 + "DataEnvironment";
+    static final String NAME2 = ID2 + "DataEnvironment";
 
-    @InjectMocks
-    private DataEnvironmentServiceImpl dataEnvService;
     @Mock
-    private ApplicationContextAdapter ctxMock;
+    ApplicationContextAdapter ctxMock;
+    DataEnvironmentServiceImpl dataEnvService;
+
+    @BeforeEach
+    void setUp() {
+        dataEnvService = new DataEnvironmentServiceImpl(
+                null, mock(DataSourceProvider.class), $ -> ctxMock);
+    }
 
     @Test
     void testGet() {
@@ -149,23 +155,28 @@ public class DataEnvironmentServiceImplTest {
         // THEN
         assertSame(toCreate, result, "expected same as passed");
         // AND
-        ArgumentCaptor<String> name = ArgumentCaptor.forClass(String.class);
-        ArgumentCaptor<Class<DataEnvironment>> clazz = ArgumentCaptor.forClass(Class.class);
-        ArgumentCaptor<Supplier<DataEnvironment>> instance = ArgumentCaptor.forClass(Supplier.class);
-        ArgumentCaptor<BeanDefinitionCustomizer> customizers = ArgumentCaptor.forClass(BeanDefinitionCustomizer.class);
-        verify(ctxMock, times(1)).addBean(name.capture(), clazz.capture(), instance.capture(), customizers.capture());
+        ArgumentCaptor<BeanCfg> beanCfg = ArgumentCaptor.forClass(BeanCfg.class);
+        verify(ctxMock, times(1)).addBean(beanCfg.capture());
+        String name = beanCfg.getValue().getName();
+        Class<?> clazz = beanCfg.getValue().getBeanClass();
+        Supplier<?> supplier = beanCfg.getValue().getSupplier();
+        String destroyMethod = beanCfg.getValue().getDestroyMethod();
         // AND
-        assertEquals(NAME1, name.getValue(), "name should match");
-        assertSame(DataEnvironment.class, clazz.getValue(), "class should match");
-        assertNotNull(instance.getValue(), "instance should be presented");
-        assertEquals(1, customizers.getAllValues().size(), "expected one customizer");
-        assertNotNull(customizers.getAllValues().get(0), "customizer should be presented");
+        assertEquals(NAME1, name, "name should match");
+        assertSame(DataEnvironment.class, clazz, "class should match");
+        assertNotNull(supplier, "instance should be presented");
+        assertEquals("close", destroyMethod, "expected real destroy method");
     }
 
     @Test
     void testCreateAlreadyExists() {
         // GIVEN
-        doThrow(BeanDefinitionStoreException.class).when(ctxMock).addBean(eq(NAME1), same(DataEnvironment.class), any(), any());
+        doThrow(BeanDefinitionStoreException.class).when(ctxMock)
+                .addBean(eq(BeanCfg.of(DataEnvironment.class)
+                        .name(NAME1)
+                        .supplier(String::new)
+                        .destroyMethod("close")
+                        .build()));
 
         // WHEN
         Throwable thrown = catchThrowable(() -> dataEnvService.create(dataEnv(ID1)));
@@ -195,7 +206,7 @@ public class DataEnvironmentServiceImplTest {
         assertTrue(thrown instanceof DataEnvironmentNotFoundException, "expected not found");
     }
 
-    private static DataEnvironment dataEnv(String envId) {
+    static DataEnvironment dataEnv(String envId) {
         return DataEnvironment.builder()
                 .definition(DataEnvironmentDefinition.builder()
                         .envId(envId)

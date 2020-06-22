@@ -8,6 +8,8 @@ import org.springframework.orm.jpa.vendor.Database;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Pattern;
 
+import static ru.serge2nd.octopussy.config.CommonConfig.*;
+
 @Value
 @Builder
 public class DataEnvironmentDefinition {
@@ -25,17 +27,17 @@ public class DataEnvironmentDefinition {
     @NotBlank
     String password;
 
-    public DataEnvironmentDefinition(@JsonProperty("envId")
+    public DataEnvironmentDefinition(@JsonProperty(DATA_ENV_ID)
                                              String envId,
-                                     @JsonProperty("database")
+                                     @JsonProperty(DATA_ENV_DB)
                                              Database database,
-                                     @JsonProperty("driverClass")
+                                     @JsonProperty(DATA_ENV_DRIVER_CLASS)
                                              String driverClass,
-                                     @JsonProperty("url")
+                                     @JsonProperty(DATA_ENV_URL)
                                              String url,
-                                     @JsonProperty("login")
+                                     @JsonProperty(DATA_ENV_LOGIN)
                                              String login,
-                                     @JsonProperty("password")
+                                     @JsonProperty(DATA_ENV_PASSWORD)
                                              String password) {
         this.envId = envId;
         this.database = database;

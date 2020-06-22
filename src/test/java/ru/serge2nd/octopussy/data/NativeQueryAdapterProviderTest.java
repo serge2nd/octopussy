@@ -10,6 +10,7 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.cache.Cache;
+import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.ComponentScan.Filter;
 import org.springframework.context.annotation.Configuration;
@@ -141,6 +142,7 @@ class NativeQueryAdapterProviderTest {
     }
 
     @Configuration
+    @EnableCaching
     @EnableAutoConfiguration
     @ComponentScan(value =
             "ru.serge2nd.octopussy.config",
