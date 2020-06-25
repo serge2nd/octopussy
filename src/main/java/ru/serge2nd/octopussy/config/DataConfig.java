@@ -2,6 +2,7 @@ package ru.serge2nd.octopussy.config;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import lombok.RequiredArgsConstructor;
 import org.hibernate.SessionFactory;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
@@ -14,9 +15,10 @@ import org.springframework.orm.hibernate5.HibernateTransactionManager;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.orm.jpa.vendor.Database;
 import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
-import org.springframework.stereotype.Component;
 import org.springframework.transaction.PlatformTransactionManager;
 import ru.serge2nd.octopussy.config.spi.DataSourceProvider;
+import ru.serge2nd.util.HardProperties;
+import ru.serge2nd.util.bean.Immutable;
 
 import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
@@ -24,7 +26,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
-import static java.util.Collections.unmodifiableMap;
 import static ru.serge2nd.octopussy.config.CommonConfig.DATA_ENV_DB;
 import static ru.serge2nd.octopussy.config.CommonConfig.DATA_ENV_ID;
 
@@ -33,24 +34,19 @@ import static ru.serge2nd.octopussy.config.CommonConfig.DATA_ENV_ID;
         DataSourceAutoConfiguration.class,
         DataSourceTransactionManagerAutoConfiguration.class,
         HibernateJpaAutoConfiguration.class})
+@RequiredArgsConstructor
 public class DataConfig implements DataSourceProvider {
-    @Bean @ConfigurationProperties("spring.datasource.hikari")
+    @Immutable @Bean @ConfigurationProperties("spring.datasource.hikari")
     Properties baseDataSourceProps() { return new Properties(); }
-    @Bean @ConfigurationProperties("spring.jpa.properties")
+    @Immutable @Bean @ConfigurationProperties("spring.jpa.properties")
     Properties baseJpaProps() { return new Properties(); }
-    @Component @ConfigurationProperties("octopussy.data.env.arg.mapping")
-    private static class DataSourcePropertyNames extends HashMap<String, String> {}
-
-    private final Map<String, String> dataSourcePropertyNames;
-
-    public DataConfig(DataSourcePropertyNames dataSourcePropertyNames) {
-        this.dataSourcePropertyNames = unmodifiableMap(dataSourcePropertyNames);
-    }
+    @Immutable @Bean @ConfigurationProperties("octopussy.data.env.arg.mapping")
+    Map<String, String> dataSourcePropertyNames() { return new HashMap<>(); }
 
     @Override
     public DataSource getDataSource(Properties dataSourceProps) {
         return new HikariDataSource(new HikariConfig(
-                new Properties(baseDataSourceProps()){{putAll(dataSourceProps);}}));
+                HardProperties.from(baseDataSourceProps(), dataSourceProps)));
     }
 
     @Override
@@ -64,8 +60,7 @@ public class DataConfig implements DataSourceProvider {
 
         emf.setPersistenceUnitName(jpaProps.getProperty(DATA_ENV_ID) + "PU");
         emf.setPackagesToScan("ru.serge2nd.octopussy.data");
-        emf.setJpaProperties(
-                new Properties(baseJpaProps()){{putAll(jpaProps);}});
+        emf.setJpaProperties(HardProperties.from(baseJpaProps(), jpaProps));
 
         emf.afterPropertiesSet();
         return emf.getObject();
@@ -80,6 +75,6 @@ public class DataConfig implements DataSourceProvider {
 
     @Override
     public Map<String, String> getPropertyNames() {
-        return dataSourcePropertyNames;
+        return dataSourcePropertyNames();
     }
 }

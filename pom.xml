@@ -93,15 +93,17 @@
                 <version>${spring-boot.version}</version>
                 <executions>
                     <execution>
-                        <goals>
-                            <goal>repackage</goal>
-                        </goals>
+                        <goals><goal>repackage</goal></goals>
                     </execution>
                 </executions>
             </plugin>
             <plugin>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>${surefire-plugin.version}</version>
+            </plugin>
+            <plugin>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>${compiler-plugin.version}</version>
             </plugin>
         </plugins>
     </build>
@@ -116,6 +118,7 @@
         <spring-boot.version>2.2.6.RELEASE</spring-boot.version>
 
         <surefire-plugin.version>2.22.2</surefire-plugin.version>
+        <compiler-plugin.version>3.8.1</compiler-plugin.version>
         <junit-jupiter.version>5.5.2</junit-jupiter.version>
         <mockito.version>3.3.3</mockito.version>
         <h2.version>1.4.200</h2.version>
