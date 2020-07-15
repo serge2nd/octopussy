@@ -2,11 +2,11 @@ package ru.serge2nd.util;
 
 import com.fasterxml.jackson.databind.type.TypeFactory;
 import lombok.Getter;
-import sun.reflect.generics.reflectiveObjects.ParameterizedTypeImpl;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.Arrays;
+import java.util.Objects;
 
 public final class TypeWrap<T> implements ParameterizedType {
     @Getter
@@ -15,20 +15,20 @@ public final class TypeWrap<T> implements ParameterizedType {
 
     public static <U> TypeWrap<U> of(Class<U> clazz, Type... typeParams) {
         if (typeParams.length == 0)
-            return new TypeWrap<>(clazz);
+            return new TypeWrap<>(clazz, clazz);
         return of(clazz, typeParams, null);
     }
 
-    public static <U> TypeWrap<U> of(Class<U> clazz, Type[] typeParams, Type ownerType) {
+    public static <U> TypeWrap<U> of(Class<U> clazz, Type[] typeParams, Type owner) {
         typeParams = Arrays.stream(typeParams)
                 .map(TypeWrap::unwrap)
                 .toArray(Type[]::new);
-        return new TypeWrap<>(ParameterizedTypeImpl.make(clazz, typeParams, unwrap(ownerType)));
+        return new TypeWrap<>(makeParameterizedType(clazz, typeParams, unwrap(owner)), clazz);
     }
 
-    private TypeWrap(Type type) {
+    private TypeWrap(Type type, Class<T> raw) {
         this.type = type;
-        this.raw = rawClass(type);
+        this.raw = raw == null ? rawClass(type) : raw;
     }
 
     public boolean isClass() { return type == raw; }
@@ -78,5 +78,29 @@ public final class TypeWrap<T> implements ParameterizedType {
 
     public static Type unwrap(Type t) {
         return t instanceof TypeWrap ? ((TypeWrap<?>)t).getType() : t;
+    }
+
+    public static ParameterizedType makeParameterizedType(Class<?> raw, Type[] typeParams, Type owner) {
+        return new ParameterizedType() {
+            public Type getRawType() { return raw; }
+            public Type[] getActualTypeArguments() { return typeParams; }
+            public Type getOwnerType() { return owner; }
+
+            public boolean equals(Object o) {
+                if (this == o) return true;
+                if (!(o instanceof ParameterizedType)) return false;
+                ParameterizedType other = (ParameterizedType) o;
+
+                return Objects.equals(getRawType(), other.getRawType()) &&
+                        Arrays.equals(getActualTypeArguments(), other.getActualTypeArguments()) &&
+                        Objects.equals(getOwnerType(), other.getOwnerType());
+            }
+
+            public int hashCode() {
+                return Arrays.hashCode(typeParams) ^
+                        Objects.hashCode(owner) ^
+                        Objects.hashCode(raw);
+            }
+        };
     }
 }
