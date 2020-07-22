@@ -39,30 +39,20 @@ import static org.springframework.transaction.TransactionDefinition.*;
         webEnvironment = NONE)
 @ActiveProfiles("test")
 class NativeQueryAdapterProviderTest {
-    private static final String ID = "5000";
-    private static final String Q = "not executed";
+    static final String ID = "5000";
+    static final String Q = "not executed";
 
-    @Autowired
-    private NativeQueryAdapterProvider adapterProvider;
-    @Value("#{cacheManager.getCache('nativeQueryAdapters')}")
-    private Cache queryAdaptersCache;
+    @Autowired NativeQueryAdapterProvider adapterProvider;
+    @Value("#{cacheManager.getCache('nativeQueryAdapters')}") Cache queryAdaptersCache;
 
-    @MockBean
-    private DataEnvironmentService envServiceMock;
-    @InjectMocks
-    private DataEnvironment dataEnvMock;
-    @Mock
-    private EntityManagerFactory emfMock;
-    @Mock(answer = Answers.RETURNS_DEEP_STUBS)
-    private Session emMock;
-    @Mock
-    private PlatformTransactionManager tmMock;
+    @MockBean DataEnvironmentService envServiceMock;
+    @InjectMocks DataEnvironment dataEnvMock;
+    @Mock EntityManagerFactory emfMock;
+    @Mock(answer = Answers.RETURNS_DEEP_STUBS) Session emMock;
+    @Mock private PlatformTransactionManager tmMock;
 
     @BeforeEach
-    void setUp() {
-        queryAdaptersCache.clear();
-
-    }
+    void setUp() { queryAdaptersCache.clear(); }
 
     @Test
     void testGetQueryAdapter() {
@@ -123,19 +113,19 @@ class NativeQueryAdapterProviderTest {
         assertFalse(txDef.isReadOnly(), "read-only");
     }
 
-    private void mockExecute() {
+    void mockExecute() {
         when(envServiceMock.get(ID)).thenReturn(dataEnvMock);
         when(emfMock.createEntityManager(SynchronizationType.SYNCHRONIZED)).thenReturn(emMock);
         when(emMock.createNativeQuery(Q).getResultList()).thenReturn(emptyList());
     }
 
-    private void mockExecuteUpdate() {
+    void mockExecuteUpdate() {
         when(envServiceMock.get(ID)).thenReturn(dataEnvMock);
         when(emfMock.createEntityManager(SynchronizationType.SYNCHRONIZED)).thenReturn(emMock);
         when(emMock.createNativeQuery(Q).executeUpdate()).thenReturn(0);
     }
 
-    private TransactionDefinition captureTransaction() {
+    TransactionDefinition captureTransaction() {
         ArgumentCaptor<TransactionDefinition> tx = ArgumentCaptor.forClass(TransactionDefinition.class);
         verify(tmMock, times(1)).getTransaction(tx.capture());
         return tx.getValue();

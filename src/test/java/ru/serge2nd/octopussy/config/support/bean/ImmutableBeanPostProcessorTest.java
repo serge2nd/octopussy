@@ -27,7 +27,7 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
         ImmutableBeanPostProcessor.class,
         ImmutableBeanPostProcessorTest.Config.class},
         webEnvironment = NONE)
-@ActiveProfiles(ImmutableBeanPostProcessorTest.PROFILE)
+@ActiveProfiles({ImmutableBeanPostProcessorTest.PROFILE, "test"})
 class ImmutableBeanPostProcessorTest {
     @Qualifier("immutableCollection") @Autowired Collection<String> immutableCollection;
     @Qualifier("immutableList") @Autowired List<String> immutableList;
@@ -112,7 +112,7 @@ class ImmutableBeanPostProcessorTest {
     }
 
     @Configuration
-    @Profile(PROFILE)
+    @Profile(ImmutableBeanPostProcessorTest.PROFILE)
     static class Config {
         Config(DelegatingImmutableProvider<Object> immutableProvider) {
             immutableProvider.registerPrimaryDelegate(

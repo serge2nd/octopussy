@@ -43,16 +43,14 @@ import static org.springframework.context.annotation.FilterType.ASSIGNABLE_TYPE;
         webEnvironment = NONE)
 @ActiveProfiles("test")
 class DataEnvironmentServiceImplContextTest {
-    private static final String URL_PREFIX = "jdbc:h2:mem:";
-    private static final String LOGIN_PREFIX = "L";
-    private static final String PASSWORD_PREFIX = "P";
-    private static final String ID1 = "empty1";
-    private static final String ID2 = "empty2";
+    static final String URL_PREFIX = "jdbc:h2:mem:";
+    static final String LOGIN_PREFIX = "L";
+    static final String PASSWORD_PREFIX = "P";
+    static final String ID1 = "empty1";
+    static final String ID2 = "empty2";
 
-    @Autowired
-    private DataEnvironmentServiceImpl dataEnvService;
-    @Value("#{cacheManager.getCache('nativeQueryAdapters')}")
-    private Cache queryAdaptersCache;
+    @Autowired DataEnvironmentServiceImpl dataEnvService;
+    @Value("#{cacheManager.getCache('nativeQueryAdapters')}") Cache queryAdaptersCache;
 
     @BeforeEach
     void setUp() {
@@ -138,7 +136,7 @@ class DataEnvironmentServiceImplContextTest {
         assertNull(queryAdaptersCache.get(ID1), "cached still exists");
     }
 
-    private void checkConsistency(String envId, Collection<DataEnvironment> all) throws SQLException {
+    void checkConsistency(String envId, Collection<DataEnvironment> all) throws SQLException {
         DataEnvironment dataEnv = dataEnvService.get(envId);
         assertEquals(envId, dataEnv.getDefinition().getEnvId(), format("expected env %s", envId));
         // AND
@@ -160,7 +158,7 @@ class DataEnvironmentServiceImplContextTest {
         assertSame(dataEnv, matched[0], format("not same as returned by id %s", envId));
     }
 
-    private void createDataEnvs(String... envIds) {
+    void createDataEnvs(String... envIds) {
         Arrays.stream(envIds).forEach(envId ->
             dataEnvService.create(DataEnvironment.builder()
                 .definition(DataEnvironmentDefinition.builder()

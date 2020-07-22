@@ -32,15 +32,12 @@ import static ru.serge2nd.octopussy.CustomAssertions.assertStrictlyEquals;
         webEnvironment = NONE)
 @ActiveProfiles("test")
 class NativeQueryAdapterImplTest {
-    private static final String URL_PREFIX = "jdbc:h2:mem:";
-    private static final String ID = "simpledb";
+    static final String URL_PREFIX = "jdbc:h2:mem:";
+    static final String ID = "simpledb";
 
-    @Autowired
-    private NativeQueryAdapterProvider queryAdapterProvider;
-    @Autowired
-    private DataEnvironmentService dataEnvService;
-
-    private NativeQueryAdapterImpl queryAdapter;
+    @Autowired NativeQueryAdapterProvider queryAdapterProvider;
+    @Autowired DataEnvironmentService dataEnvService;
+    NativeQueryAdapterImpl queryAdapter;
 
     @BeforeEach
     void setUp() { createDataEnv(); }
@@ -65,7 +62,7 @@ class NativeQueryAdapterImplTest {
         assertStrictlyEquals(expected, result);
     }
 
-    private void createDataEnv() {
+    void createDataEnv() {
         dataEnvService.find(ID).ifPresent($ -> dataEnvService.delete(ID));
         dataEnvService.create(
             DataEnvironment.builder()

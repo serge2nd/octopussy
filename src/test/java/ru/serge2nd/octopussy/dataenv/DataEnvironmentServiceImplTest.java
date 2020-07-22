@@ -24,14 +24,13 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class DataEnvironmentServiceImplTest {
+class DataEnvironmentServiceImplTest {
     static final String ID1 = "5010";
     static final String ID2 = "7010";
     static final String NAME1 = ID1 + "DataEnvironment";
     static final String NAME2 = ID2 + "DataEnvironment";
 
-    @Mock
-    ApplicationContextAdapter ctxMock;
+    @Mock ApplicationContextAdapter ctxMock;
     DataEnvironmentServiceImpl dataEnvService;
 
     @BeforeEach
