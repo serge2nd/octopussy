@@ -34,7 +34,6 @@
             <version>${hibernate-validator.version}</version>
         </dependency>
 
-
         <!--TEST SCOPE-->
         <dependency>
             <groupId>org.springframework.boot</groupId>

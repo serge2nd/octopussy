@@ -1,4 +1,4 @@
-package ru.serge2nd.octopussy.config.adapter;
+package ru.serge2nd.util.bean;
 
 import lombok.*;
 
@@ -24,7 +24,7 @@ public class BeanCfg {
     @Builder.Default
     String scope = "singleton";
 
-    public static BeanCfg.BeanCfgBuilder of(Class<?> beanClass) {
+    public static BeanCfgBuilder of(Class<?> beanClass) {
         return BeanCfg.builder().beanClass(beanClass);
     }
 }
