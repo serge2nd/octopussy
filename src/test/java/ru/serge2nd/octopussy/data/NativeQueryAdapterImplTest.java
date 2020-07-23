@@ -14,7 +14,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.orm.jpa.vendor.Database;
 import org.springframework.test.context.ActiveProfiles;
 import ru.serge2nd.octopussy.config.WebConfig;
-import ru.serge2nd.octopussy.dataenv.DataEnvironment;
 import ru.serge2nd.octopussy.dataenv.DataEnvironmentDefinition;
 import ru.serge2nd.octopussy.dataenv.DataEnvironmentService;
 
@@ -64,16 +63,13 @@ class NativeQueryAdapterImplTest {
 
     void createDataEnv() {
         dataEnvService.find(ID).ifPresent($ -> dataEnvService.delete(ID));
-        dataEnvService.create(
-            DataEnvironment.builder()
-                .definition(DataEnvironmentDefinition.builder()
-                        .envId(ID)
-                        .database(Database.H2)
-                        .driverClass(Driver.class.getName())
-                        .url(URL_PREFIX + ID)
-                        .login("").password("")
-                        .driverClass(Driver.class.getName())
-                        .build())
+        dataEnvService.create(DataEnvironmentDefinition.builder()
+                .envId(ID)
+                .database(Database.H2)
+                .driverClass(Driver.class.getName())
+                .url(URL_PREFIX + ID)
+                .login("").password("")
+                .driverClass(Driver.class.getName())
                 .build());
         queryAdapter = (NativeQueryAdapterImpl) queryAdapterProvider.getQueryAdapter(ID);
     }

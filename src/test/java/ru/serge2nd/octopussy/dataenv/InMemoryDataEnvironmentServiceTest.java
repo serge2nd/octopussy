@@ -137,7 +137,7 @@ class InMemoryDataEnvironmentServiceTest {
 
         // THEN
         assertEquals(singletonMap(ID1, dataEnv), repository, "expected one element left");
-        verify(existing, times(1)).tryClose();
+        verify(existing, times(1)).close();
     }
 
     @Test
@@ -182,7 +182,7 @@ class InMemoryDataEnvironmentServiceTest {
         DataEnvironment dataEnvMock = mock(DataEnvironment.class);
         repository.put(ID1, dataEnvMock);
         // AND
-        doAnswer(i -> waitOn(dataEnvMock, freeLocks)).when(dataEnvMock).tryClose();
+        doAnswer(i -> waitOn(dataEnvMock, freeLocks)).when(dataEnvMock).close();
         // AND
         runAsync(() -> dataEnvService.delete(ID1));
         delayOn(dataEnvMock, freeLocks);
@@ -222,10 +222,8 @@ class InMemoryDataEnvironmentServiceTest {
     }
 
     static DataEnvironment dataEnv(String envId) {
-        return DataEnvironment.builder()
-                .definition(DataEnvironmentDefinition.builder()
-                        .envId(envId)
-                        .build())
-                .build();
+        return new DataEnvironmentImpl(
+                DataEnvironmentDefinition.builder().envId(envId).build(),
+                null, null, null);
     }
 }

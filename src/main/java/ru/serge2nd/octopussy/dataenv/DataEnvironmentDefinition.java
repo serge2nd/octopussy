@@ -4,7 +4,10 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
 import lombok.Value;
 import org.springframework.orm.jpa.vendor.Database;
+import org.springframework.transaction.PlatformTransactionManager;
 
+import javax.persistence.EntityManagerFactory;
+import javax.sql.DataSource;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Pattern;
 
@@ -12,7 +15,7 @@ import static ru.serge2nd.octopussy.config.CommonConfig.*;
 
 @Value
 @Builder
-public class DataEnvironmentDefinition {
+public class DataEnvironmentDefinition implements DataEnvironment {
     @NotBlank
     @Pattern(regexp = "[-_\\p{Alnum}]+")
     String envId;
@@ -26,6 +29,8 @@ public class DataEnvironmentDefinition {
     String login;
     @NotBlank
     String password;
+    @Override
+    public DataEnvironmentDefinition getDefinition() { return this; }
 
     public DataEnvironmentDefinition(@JsonProperty(DATA_ENV_ID)
                                              String envId,
@@ -46,4 +51,9 @@ public class DataEnvironmentDefinition {
         this.login = login;
         this.password = password;
     }
+
+    @Override public void close() { throw new UnsupportedOperationException(); }
+    @Override public DataSource getDataSource() { throw new UnsupportedOperationException(); }
+    @Override public EntityManagerFactory getEntityManagerFactory() { throw new UnsupportedOperationException(); }
+    @Override public PlatformTransactionManager getTransactionManager() { throw new UnsupportedOperationException(); }
 }

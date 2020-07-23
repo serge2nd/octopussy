@@ -33,10 +33,7 @@ public class DataEnvironmentController {
 
     @PostMapping
     public DataEnvironmentDefinition create(@Valid @RequestBody DataEnvironmentDefinition definition) {
-        return dataEnvService.create(DataEnvironment.builder()
-                .definition(definition)
-                .build())
-                .getDefinition();
+        return dataEnvService.create(definition).getDefinition();
     }
 
     @DeleteMapping("{envId}")

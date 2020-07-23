@@ -17,6 +17,9 @@ import org.springframework.orm.jpa.vendor.Database;
 import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.transaction.PlatformTransactionManager;
 import ru.serge2nd.octopussy.config.spi.DataSourceProvider;
+import ru.serge2nd.octopussy.dataenv.DataEnvironment;
+import ru.serge2nd.octopussy.dataenv.DataEnvironmentDefinition;
+import ru.serge2nd.octopussy.dataenv.DataEnvironmentImpl;
 import ru.serge2nd.util.HardProperties;
 import ru.serge2nd.util.bean.Immutable;
 
@@ -42,6 +45,16 @@ public class DataConfig implements DataSourceProvider {
     Properties baseJpaProps() { return new Properties(); }
     @Immutable @Bean @ConfigurationProperties("octopussy.data.env.arg.mapping")
     Map<String, String> dataSourcePropertyNames() { return new HashMap<>(); }
+
+    @Override
+    public DataEnvironment getDataEnvironment(DataEnvironmentDefinition definition) {
+        return new DataEnvironmentImpl(definition, this);
+    }
+
+    @Override
+    public Map<String, String> getPropertyNames() {
+        return dataSourcePropertyNames();
+    }
 
     @Override
     public DataSource getDataSource(Properties dataSourceProps) {
@@ -71,10 +84,5 @@ public class DataConfig implements DataSourceProvider {
         HibernateTransactionManager tm = new HibernateTransactionManager();
         tm.setSessionFactory(emf.unwrap(SessionFactory.class));
         return tm;
-    }
-
-    @Override
-    public Map<String, String> getPropertyNames() {
-        return dataSourcePropertyNames();
     }
 }

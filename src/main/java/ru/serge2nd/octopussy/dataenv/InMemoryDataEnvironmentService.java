@@ -10,7 +10,6 @@ import javax.annotation.PreDestroy;
 import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
 import java.io.Closeable;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
@@ -68,12 +67,12 @@ public class InMemoryDataEnvironmentService implements DataEnvironmentService, C
     public void delete(String envId) {
         this.compute(existing -> ofNullable(existing)
                 .orElseThrow(() -> new DataEnvironmentNotFoundException(envId))
-                .tryClose(), envId);
+                .close(), envId);
     }
 
     @Override
     @PreDestroy
-    public void close() throws IOException {
+    public void close() {
         for (DataEnvironment dataEnv : byId.values())
             dataEnv.close();
     }
@@ -97,7 +96,7 @@ public class InMemoryDataEnvironmentService implements DataEnvironmentService, C
             t[0] = proxy.target;
 
             if (t[0] == null)
-                proxy.target = t[0] = new DataEnvironment(proxy.getDefinition(), dataSourceProvider);
+                proxy.target = t[0] = dataSourceProvider.getDataEnvironment(proxy.getDefinition());
 
             return proxy;
         });
@@ -105,30 +104,31 @@ public class InMemoryDataEnvironmentService implements DataEnvironmentService, C
         return t[0];
     }
 
-    class DataEnvironmentProxy extends DataEnvironment {
+    class DataEnvironmentProxy implements DataEnvironment {
+        final DataEnvironmentDefinition def;
         volatile DataEnvironment target;
         volatile boolean closed;
 
-        DataEnvironmentProxy(DataEnvironmentDefinition definition) {
-            super(definition, null, null, null);
-        }
+        DataEnvironmentProxy(DataEnvironmentDefinition def) { this.def = def; }
 
         DataEnvironment getTarget() {
-            if (closed) {
-                throw new RuntimeException(format("data environment %s is closed", getDefinition().getEnvId()));
-            }
-            return InMemoryDataEnvironmentService.this
-                    .getProxyTarget(getDefinition().getEnvId());
+            if (isClosed())
+                throw new IllegalStateException(format("data environment %s is closed", def.getEnvId()));
+            return getProxyTarget(def.getEnvId());
         }
 
+        @Override public DataEnvironmentDefinition getDefinition() { return this.def; }
         @Override public DataSource getDataSource() { return getTarget().getDataSource(); }
         @Override public EntityManagerFactory getEntityManagerFactory() { return getTarget().getEntityManagerFactory(); }
         @Override public PlatformTransactionManager getTransactionManager() { return getTarget().getTransactionManager(); }
+        @Override public boolean isClosed() { return this.closed; }
         @Override
-        public void close() throws IOException {
-            this.closed = true;
-            DataEnvironment target = this.target;
-            if (target != null) target.close();
+        public void close() {
+            if (!isClosed()) {
+                this.closed = true;
+                DataEnvironment target = this.target;
+                if (target != null) target.close();
+            }
         }
     }
 }

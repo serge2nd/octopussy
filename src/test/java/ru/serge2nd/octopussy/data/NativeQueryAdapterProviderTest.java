@@ -18,7 +18,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
 import ru.serge2nd.octopussy.config.WebConfig;
-import ru.serge2nd.octopussy.dataenv.DataEnvironment;
+import ru.serge2nd.octopussy.dataenv.DataEnvironmentImpl;
 import ru.serge2nd.octopussy.dataenv.DataEnvironmentService;
 
 import javax.persistence.EntityManagerFactory;
@@ -46,7 +46,8 @@ class NativeQueryAdapterProviderTest {
     @Value("#{cacheManager.getCache('nativeQueryAdapters')}") Cache queryAdaptersCache;
 
     @MockBean DataEnvironmentService envServiceMock;
-    @InjectMocks DataEnvironment dataEnvMock;
+    @InjectMocks
+    DataEnvironmentImpl dataEnvMock;
     @Mock EntityManagerFactory emfMock;
     @Mock(answer = Answers.RETURNS_DEEP_STUBS) Session emMock;
     @Mock private PlatformTransactionManager tmMock;
