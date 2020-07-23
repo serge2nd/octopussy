@@ -1,10 +1,11 @@
-package ru.serge2nd.octopussy.dataenv;
+package ru.serge2nd.octopussy.support;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.transaction.PlatformTransactionManager;
-import ru.serge2nd.octopussy.config.spi.DataSourceProvider;
+import ru.serge2nd.octopussy.spi.DataEnvironment;
+import ru.serge2nd.octopussy.spi.DataSourceProvider;
 
 import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;

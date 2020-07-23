@@ -1,10 +1,15 @@
-package ru.serge2nd.octopussy.dataenv;
+package ru.serge2nd.octopussy.service;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
-import ru.serge2nd.octopussy.dataenv.InMemoryDataEnvironmentService.DataEnvironmentProxy;
+import ru.serge2nd.octopussy.spi.DataEnvironment;
+import ru.serge2nd.octopussy.service.ex.DataEnvironmentExistsException;
+import ru.serge2nd.octopussy.service.ex.DataEnvironmentNotFoundException;
+import ru.serge2nd.octopussy.support.DataEnvironmentDefinition;
+import ru.serge2nd.octopussy.support.DataEnvironmentImpl;
+import ru.serge2nd.octopussy.service.InMemoryDataEnvironmentService.DataEnvironmentProxy;
 
 import java.util.*;
 import java.util.concurrent.*;
@@ -165,7 +170,7 @@ class InMemoryDataEnvironmentServiceTest {
 
         // WHEN
         Future<Void> result = runAsync(
-                () -> dataEnvService.delete(ID1));
+                () -> dataEnvService.doWith(ID1, e -> e));
 
         // THEN
         try {
@@ -224,6 +229,6 @@ class InMemoryDataEnvironmentServiceTest {
     static DataEnvironment dataEnv(String envId) {
         return new DataEnvironmentImpl(
                 DataEnvironmentDefinition.builder().envId(envId).build(),
-                null, null, null);
+                null, null, null) {};
     }
 }

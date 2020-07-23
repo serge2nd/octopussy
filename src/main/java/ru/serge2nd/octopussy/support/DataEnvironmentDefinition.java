@@ -1,10 +1,11 @@
-package ru.serge2nd.octopussy.dataenv;
+package ru.serge2nd.octopussy.support;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
 import lombok.Value;
 import org.springframework.orm.jpa.vendor.Database;
 import org.springframework.transaction.PlatformTransactionManager;
+import ru.serge2nd.octopussy.spi.DataEnvironment;
 
 import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;

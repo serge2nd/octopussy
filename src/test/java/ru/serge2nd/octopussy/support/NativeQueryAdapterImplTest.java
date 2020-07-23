@@ -1,4 +1,4 @@
-package ru.serge2nd.octopussy.data;
+package ru.serge2nd.octopussy.support;
 
 import org.h2.Driver;
 import org.junit.jupiter.api.BeforeEach;
@@ -14,8 +14,9 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.orm.jpa.vendor.Database;
 import org.springframework.test.context.ActiveProfiles;
 import ru.serge2nd.octopussy.config.WebConfig;
-import ru.serge2nd.octopussy.dataenv.DataEnvironmentDefinition;
-import ru.serge2nd.octopussy.dataenv.DataEnvironmentService;
+import ru.serge2nd.octopussy.service.DataEnvironmentService;
+import ru.serge2nd.octopussy.spi.DataEnvironment;
+import ru.serge2nd.octopussy.spi.NativeQueryAdapter;
 
 import java.util.List;
 import java.util.stream.Stream;
@@ -34,9 +35,9 @@ class NativeQueryAdapterImplTest {
     static final String URL_PREFIX = "jdbc:h2:mem:";
     static final String ID = "simpledb";
 
-    @Autowired NativeQueryAdapterProvider queryAdapterProvider;
+    final NativeQueryAdapterProviderImpl queryAdapterProvider = new NativeQueryAdapterProviderImpl();
     @Autowired DataEnvironmentService dataEnvService;
-    NativeQueryAdapterImpl queryAdapter;
+    NativeQueryAdapter queryAdapter;
 
     @BeforeEach
     void setUp() { createDataEnv(); }
@@ -63,23 +64,21 @@ class NativeQueryAdapterImplTest {
 
     void createDataEnv() {
         dataEnvService.find(ID).ifPresent($ -> dataEnvService.delete(ID));
-        dataEnvService.create(DataEnvironmentDefinition.builder()
+        DataEnvironment created = dataEnvService.create(DataEnvironmentDefinition.builder()
                 .envId(ID)
                 .database(Database.H2)
                 .driverClass(Driver.class.getName())
                 .url(URL_PREFIX + ID)
                 .login("").password("")
-                .driverClass(Driver.class.getName())
                 .build());
-        queryAdapter = (NativeQueryAdapterImpl) queryAdapterProvider.getQueryAdapter(ID);
+        queryAdapter = queryAdapterProvider.getQueryAdapter(created);
     }
 
     @Configuration
     @EnableAutoConfiguration
     @ComponentScan(value = {
             "ru.serge2nd.octopussy.config",
-            "ru.serge2nd.octopussy.data",
-            "ru.serge2nd.octopussy.dataenv"},
+            "ru.serge2nd.octopussy.service"},
             excludeFilters = @Filter(type = ASSIGNABLE_TYPE, value = WebConfig.class))
     static class Config {}
 }

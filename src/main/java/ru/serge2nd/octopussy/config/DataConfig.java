@@ -9,17 +9,24 @@ import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceTransactionManagerAutoConfiguration;
 import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.orm.hibernate5.HibernateTransactionManager;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.orm.jpa.vendor.Database;
 import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.transaction.PlatformTransactionManager;
-import ru.serge2nd.octopussy.config.spi.DataSourceProvider;
-import ru.serge2nd.octopussy.dataenv.DataEnvironment;
-import ru.serge2nd.octopussy.dataenv.DataEnvironmentDefinition;
-import ru.serge2nd.octopussy.dataenv.DataEnvironmentImpl;
+import ru.serge2nd.octopussy.spi.DataSourceProvider;
+import ru.serge2nd.octopussy.spi.DataEnvironment;
+import ru.serge2nd.octopussy.spi.NativeQueryAdapterProvider;
+import ru.serge2nd.octopussy.service.DataEnvironmentService;
+import ru.serge2nd.octopussy.support.DataEnvironmentDefinition;
+import ru.serge2nd.octopussy.support.DataEnvironmentImpl;
+import ru.serge2nd.octopussy.spi.NativeQueryAdapter;
+import ru.serge2nd.octopussy.support.NativeQueryAdapterProviderImpl;
 import ru.serge2nd.util.HardProperties;
 import ru.serge2nd.util.bean.Immutable;
 
@@ -31,8 +38,10 @@ import java.util.Properties;
 
 import static ru.serge2nd.octopussy.config.CommonConfig.DATA_ENV_DB;
 import static ru.serge2nd.octopussy.config.CommonConfig.DATA_ENV_ID;
+import static ru.serge2nd.octopussy.config.CommonConfig.QUERY_ADAPTERS_CACHE;
 
 @Configuration
+@EnableCaching
 @EnableAutoConfiguration(exclude = {
         DataSourceAutoConfiguration.class,
         DataSourceTransactionManagerAutoConfiguration.class,
@@ -45,6 +54,23 @@ public class DataConfig implements DataSourceProvider {
     Properties baseJpaProps() { return new Properties(); }
     @Immutable @Bean @ConfigurationProperties("octopussy.data.env.arg.mapping")
     Map<String, String> dataSourcePropertyNames() { return new HashMap<>(); }
+
+    @Primary @Bean
+    NativeQueryAdapterProvider nativeQueryAdapterProvider(DataEnvironmentService dataEnvService) {
+        return new NativeQueryAdapterProvider() {
+            @Cacheable(
+                key = "#p0.definition.envId",
+                cacheNames = QUERY_ADAPTERS_CACHE)
+            public NativeQueryAdapter getQueryAdapter(DataEnvironment raw) {
+                return this.getQueryAdapter(raw.getDefinition().getEnvId());
+            }
+            @Cacheable(QUERY_ADAPTERS_CACHE)
+            public NativeQueryAdapter getQueryAdapter(String envId) {
+                return dataEnvService.doWith(envId, dataEnv -> nqaProviderTarget().getQueryAdapter(dataEnv));
+            }
+        };
+    }
+    @Bean NativeQueryAdapterProvider nqaProviderTarget() { return new NativeQueryAdapterProviderImpl(); }
 
     @Override
     public DataEnvironment getDataEnvironment(DataEnvironmentDefinition definition) {

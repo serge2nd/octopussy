@@ -1,10 +1,14 @@
-package ru.serge2nd.octopussy.dataenv;
+package ru.serge2nd.octopussy.service;
 
 import org.springframework.beans.BeansException;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.PlatformTransactionManager;
-import ru.serge2nd.octopussy.config.spi.DataSourceProvider;
+import ru.serge2nd.octopussy.spi.DataEnvironment;
+import ru.serge2nd.octopussy.spi.DataSourceProvider;
+import ru.serge2nd.octopussy.service.ex.DataEnvironmentExistsException;
+import ru.serge2nd.octopussy.service.ex.DataEnvironmentNotFoundException;
+import ru.serge2nd.octopussy.support.DataEnvironmentDefinition;
 
 import javax.annotation.PreDestroy;
 import javax.persistence.EntityManagerFactory;
@@ -15,6 +19,7 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 
@@ -49,6 +54,17 @@ public class InMemoryDataEnvironmentService implements DataEnvironmentService, C
     @Override
     public Collection<DataEnvironment> getAll() {
         return unmodifiableCollection(new ArrayList<>(byId.values()));
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public <R> R doWith(String envId, Function<DataEnvironment, R> action) {
+        Object[] result = new Object[1];
+        this.compute(envId, dataEnv -> {
+            result[0] = action.apply(dataEnv);
+            return dataEnv;
+        });
+        return (R)result[0];
     }
 
     @Override

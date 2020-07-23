@@ -1,16 +1,17 @@
-package ru.serge2nd.octopussy.data;
+package ru.serge2nd.octopussy.support;
 
 import org.hibernate.Session;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.*;
+import org.mockito.Answers;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.cache.Cache;
-import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.ComponentScan.Filter;
 import org.springframework.context.annotation.Configuration;
@@ -18,15 +19,18 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
 import ru.serge2nd.octopussy.config.WebConfig;
-import ru.serge2nd.octopussy.dataenv.DataEnvironmentImpl;
-import ru.serge2nd.octopussy.dataenv.DataEnvironmentService;
+import ru.serge2nd.octopussy.service.DataEnvironmentService;
+import ru.serge2nd.octopussy.spi.NativeQueryAdapter;
+import ru.serge2nd.octopussy.spi.NativeQueryAdapterProvider;
 
 import javax.persistence.EntityManagerFactory;
-import javax.persistence.SynchronizationType;
 import java.util.List;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
+import static javax.persistence.SynchronizationType.SYNCHRONIZED;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.NONE;
@@ -34,37 +38,40 @@ import static org.springframework.context.annotation.FilterType.ASSIGNABLE_TYPE;
 import static org.springframework.transaction.TransactionDefinition.*;
 
 @SpringBootTest(classes = {
-        NativeQueryAdapterProviderTest.Config.class,
-        NativeQueryAdapterProvider.class},
+        NativeQueryAdapterProviderImplTest.Config.class,
+        NativeQueryAdapterProviderImpl.class},
         webEnvironment = NONE)
 @ActiveProfiles("test")
-class NativeQueryAdapterProviderTest {
+class NativeQueryAdapterProviderImplTest {
     static final String ID = "5000";
     static final String Q = "not executed";
 
     @Autowired NativeQueryAdapterProvider adapterProvider;
+    @MockBean DataEnvironmentService envServiceMock;
     @Value("#{cacheManager.getCache('nativeQueryAdapters')}") Cache queryAdaptersCache;
 
-    @MockBean DataEnvironmentService envServiceMock;
-    @InjectMocks
-    DataEnvironmentImpl dataEnvMock;
+    final DataEnvironmentDefinition definition = DataEnvironmentDefinition.builder().envId(ID).build();
+    DataEnvironmentImpl dataEnv;
+
     @Mock EntityManagerFactory emfMock;
     @Mock(answer = Answers.RETURNS_DEEP_STUBS) Session emMock;
-    @Mock private PlatformTransactionManager tmMock;
+    @Mock PlatformTransactionManager tmMock;
 
     @BeforeEach
-    void setUp() { queryAdaptersCache.clear(); }
+    void setUp() {
+        queryAdaptersCache.clear();
+        dataEnv = new DataEnvironmentImpl(definition, null, emfMock, tmMock);
+    }
 
     @Test
     void testGetQueryAdapter() {
         // GIVEN
-        when(envServiceMock.get(ID)).thenReturn(dataEnvMock);
+        when(envServiceMock.get(ID)).thenReturn(dataEnv);
 
         // WHEN
         NativeQueryAdapter queryAdapter = adapterProvider.getQueryAdapter(ID);
 
         // THEN
-        assertTrue(queryAdapter instanceof NativeQueryAdapterImpl, "expected adapter impl");
         assertSame(queryAdapter, queryAdaptersCache.get(ID, NativeQueryAdapter.class), "expected to be cached");
     }
 
@@ -92,10 +99,11 @@ class NativeQueryAdapterProviderTest {
 
         // THEN
         assertTrue(result.isEmpty(), "wrong result");
-        TransactionDefinition txDef = captureTransaction();
-        assertEquals(ISOLATION_DEFAULT, txDef.getIsolationLevel(), "wrong isolation");
-        assertEquals(PROPAGATION_SUPPORTS, txDef.getPropagationBehavior(), "wrong propagation");
-        assertTrue(txDef.isReadOnly(), "not read-only");
+        captureTransaction(tx -> {
+            assertEquals(ISOLATION_DEFAULT, tx.getIsolationLevel(), "wrong isolation");
+            assertEquals(PROPAGATION_SUPPORTS, tx.getPropagationBehavior(), "wrong propagation");
+            assertTrue(tx.isReadOnly(), "not read-only");
+        });
     }
 
     @Test
@@ -108,32 +116,37 @@ class NativeQueryAdapterProviderTest {
 
         // THEN
         assertEquals(0, result, "wrong result");
-        TransactionDefinition txDef = captureTransaction();
-        assertEquals(ISOLATION_DEFAULT, txDef.getIsolationLevel(), "wrong isolation");
-        assertEquals(PROPAGATION_REQUIRED, txDef.getPropagationBehavior(), "wrong propagation");
-        assertFalse(txDef.isReadOnly(), "read-only");
+        captureTransaction(tx -> {
+            assertEquals(ISOLATION_DEFAULT, tx.getIsolationLevel(), "wrong isolation");
+            assertEquals(PROPAGATION_REQUIRED, tx.getPropagationBehavior(), "wrong propagation");
+            assertFalse(tx.isReadOnly(), "read-only");
+        });
     }
 
+    @SuppressWarnings("unchecked")
     void mockExecute() {
-        when(envServiceMock.get(ID)).thenReturn(dataEnvMock);
-        when(emfMock.createEntityManager(SynchronizationType.SYNCHRONIZED)).thenReturn(emMock);
+        when(envServiceMock.doWith(eq(ID), any(Function.class)))
+                .thenAnswer(i -> i.getArgument(1, Function.class).apply(dataEnv));
+        when(emfMock.isOpen()).thenReturn(true);
+        when(emfMock.createEntityManager(SYNCHRONIZED)).thenReturn(emMock);
         when(emMock.createNativeQuery(Q).getResultList()).thenReturn(emptyList());
     }
-
+    @SuppressWarnings("unchecked")
     void mockExecuteUpdate() {
-        when(envServiceMock.get(ID)).thenReturn(dataEnvMock);
-        when(emfMock.createEntityManager(SynchronizationType.SYNCHRONIZED)).thenReturn(emMock);
+        when(envServiceMock.doWith(eq(ID), any(Function.class)))
+                .thenAnswer(i -> i.getArgument(1, Function.class).apply(dataEnv));
+        when(emfMock.isOpen()).thenReturn(true);
+        when(emfMock.createEntityManager(SYNCHRONIZED)).thenReturn(emMock);
         when(emMock.createNativeQuery(Q).executeUpdate()).thenReturn(0);
     }
 
-    TransactionDefinition captureTransaction() {
+    void captureTransaction(Consumer<TransactionDefinition> consumer) {
         ArgumentCaptor<TransactionDefinition> tx = ArgumentCaptor.forClass(TransactionDefinition.class);
         verify(tmMock, times(1)).getTransaction(tx.capture());
-        return tx.getValue();
+        consumer.accept(tx.getValue());
     }
 
     @Configuration
-    @EnableCaching
     @EnableAutoConfiguration
     @ComponentScan(value =
             "ru.serge2nd.octopussy.config",

@@ -6,8 +6,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
-import ru.serge2nd.octopussy.data.NativeQueryAdapter;
-import ru.serge2nd.octopussy.data.NativeQueryAdapterProvider;
+import ru.serge2nd.octopussy.spi.NativeQueryAdapter;
+import ru.serge2nd.octopussy.support.NativeQueryAdapterProviderImpl;
 
 import javax.validation.Valid;
 import java.util.List;
@@ -19,7 +19,7 @@ import static java.util.Collections.singletonMap;
 @RestController
 @RequiredArgsConstructor
 public class QueryController {
-    private final NativeQueryAdapterProvider queryAdapterFactory;
+    private final NativeQueryAdapterProviderImpl queryAdapterFactory;
 
     @PostMapping("executeQuery")
     public @ResponseBody List<?> executeQuery(@Valid @RequestBody QueryRq rq) {

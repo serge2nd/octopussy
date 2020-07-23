@@ -1,4 +1,4 @@
-package ru.serge2nd.octopussy.dataenv;
+package ru.serge2nd.octopussy.service.ex;
 
 import lombok.Getter;
 

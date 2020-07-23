@@ -1,23 +1,25 @@
-package ru.serge2nd.octopussy.data;
+package ru.serge2nd.octopussy.support;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataRetrievalFailureException;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import ru.serge2nd.octopussy.spi.DataEnvironment;
+import ru.serge2nd.octopussy.service.ex.DataEnvironmentClosedException;
+import ru.serge2nd.octopussy.spi.NativeQueryAdapter;
 
 import javax.persistence.EntityManager;
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.SynchronizationType;
 import java.sql.*;
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toList;
+import static javax.persistence.SynchronizationType.SYNCHRONIZED;
 
 @RequiredArgsConstructor
 public class NativeQueryAdapterImpl implements NativeQueryAdapter {
-    private final EntityManagerFactory entityManagerFactory;
+    private final DataEnvironment dataEnv;
 
     @Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
     @SuppressWarnings("unchecked")
@@ -39,7 +41,8 @@ public class NativeQueryAdapterImpl implements NativeQueryAdapter {
     private <R> R execute(Function<EntityManager, R> op) {
         EntityManager em = null;
         try {
-            em = entityManagerFactory.createEntityManager(SynchronizationType.SYNCHRONIZED);
+            if (dataEnv.isClosed()) throw new DataEnvironmentClosedException(dataEnv.getDefinition().getEnvId());
+            em = dataEnv.getEntityManagerFactory().createEntityManager(SYNCHRONIZED);
             return op.apply(em);
         } finally {
             if (em != null) em.close();

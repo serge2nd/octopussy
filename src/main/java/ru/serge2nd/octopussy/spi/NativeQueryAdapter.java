@@ -1,4 +1,4 @@
-package ru.serge2nd.octopussy.data;
+package ru.serge2nd.octopussy.spi;
 
 import java.util.List;
 

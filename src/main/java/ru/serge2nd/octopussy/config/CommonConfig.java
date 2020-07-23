@@ -1,16 +1,14 @@
 package ru.serge2nd.octopussy.config;
 
-import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import ru.serge2nd.octopussy.dataenv.DataEnvironment;
+import ru.serge2nd.octopussy.spi.DataEnvironment;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 
 @Configuration
-@EnableCaching
 public class CommonConfig {
     public static final String QUERY_ADAPTERS_CACHE = "nativeQueryAdapters";
 

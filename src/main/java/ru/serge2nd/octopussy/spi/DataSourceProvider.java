@@ -1,8 +1,7 @@
-package ru.serge2nd.octopussy.config.spi;
+package ru.serge2nd.octopussy.spi;
 
 import org.springframework.transaction.PlatformTransactionManager;
-import ru.serge2nd.octopussy.dataenv.DataEnvironment;
-import ru.serge2nd.octopussy.dataenv.DataEnvironmentDefinition;
+import ru.serge2nd.octopussy.support.DataEnvironmentDefinition;
 
 import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
