@@ -5,14 +5,13 @@ import lombok.Builder;
 import lombok.Value;
 import org.springframework.orm.jpa.vendor.Database;
 import org.springframework.transaction.PlatformTransactionManager;
+import ru.serge2nd.octopussy.App;
 import ru.serge2nd.octopussy.spi.DataEnvironment;
 
 import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Pattern;
-
-import static ru.serge2nd.octopussy.config.CommonConfig.*;
 
 @Value
 @Builder
@@ -33,17 +32,17 @@ public class DataEnvironmentDefinition implements DataEnvironment {
     @Override
     public DataEnvironmentDefinition getDefinition() { return this; }
 
-    public DataEnvironmentDefinition(@JsonProperty(DATA_ENV_ID)
+    public DataEnvironmentDefinition(@JsonProperty(App.DATA_ENV_ID)
                                              String envId,
-                                     @JsonProperty(DATA_ENV_DB)
+                                     @JsonProperty(App.DATA_ENV_DB)
                                              Database database,
-                                     @JsonProperty(DATA_ENV_DRIVER_CLASS)
+                                     @JsonProperty(App.DATA_ENV_DRIVER_CLASS)
                                              String driverClass,
-                                     @JsonProperty(DATA_ENV_URL)
+                                     @JsonProperty(App.DATA_ENV_URL)
                                              String url,
-                                     @JsonProperty(DATA_ENV_LOGIN)
+                                     @JsonProperty(App.DATA_ENV_LOGIN)
                                              String login,
-                                     @JsonProperty(DATA_ENV_PASSWORD)
+                                     @JsonProperty(App.DATA_ENV_PASSWORD)
                                              String password) {
         this.envId = envId;
         this.database = database;

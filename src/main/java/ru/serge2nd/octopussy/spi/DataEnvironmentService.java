@@ -1,6 +1,4 @@
-package ru.serge2nd.octopussy.service;
-
-import ru.serge2nd.octopussy.spi.DataEnvironment;
+package ru.serge2nd.octopussy.spi;
 
 import java.util.Collection;
 import java.util.Optional;

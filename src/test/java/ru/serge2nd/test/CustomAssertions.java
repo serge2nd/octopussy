@@ -1,4 +1,4 @@
-package ru.serge2nd.octopussy;
+package ru.serge2nd.test;
 
 import org.opentest4j.AssertionFailedError;
 
@@ -113,7 +113,9 @@ public class CustomAssertions {
                     assertArrayEquals((long[])expected, (long[])actual);
                 else if (float.class == componentType)
                     assertArrayEquals((float[])expected, (float[])actual);
-                else assertArrayEquals((double[])expected, (double[])actual);
+                else if (double.class == componentType)
+                    assertArrayEquals((double[])expected, (double[])actual);
+                else throw new IllegalArgumentException(componentType.getName());
             } catch (AssertionFailedError assertionError) {
                 addAssertionError(assertionError.getMessage());
             }

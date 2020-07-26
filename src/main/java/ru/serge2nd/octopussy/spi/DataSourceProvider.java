@@ -6,17 +6,18 @@ import ru.serge2nd.octopussy.support.DataEnvironmentDefinition;
 import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
 import java.util.Map;
-import java.util.Properties;
 
 public interface DataSourceProvider {
 
     DataEnvironment getDataEnvironment(DataEnvironmentDefinition definition);
 
+    DataEnvironmentService getDataEnvironmentService();
+
     Map<String, String> getPropertyNames();
 
-    DataSource getDataSource(Properties props);
+    DataSource getDataSource(Map<String, String> props);
 
-    EntityManagerFactory getEntityManagerFactory(DataSource dataSource, Properties props);
+    EntityManagerFactory getEntityManagerFactory(DataSource dataSource, Map<String, String> props);
 
     PlatformTransactionManager getTransactionManager(EntityManagerFactory emf);
 }

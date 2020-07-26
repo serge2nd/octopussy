@@ -17,4 +17,10 @@ public interface DataEnvironment extends Closeable {
     DataSource getDataSource();
     EntityManagerFactory getEntityManagerFactory();
     PlatformTransactionManager getTransactionManager();
+
+    interface DataEnvironmentBuilder {
+        DataEnvironmentBuilder definition(DataEnvironmentDefinition definition);
+        DataEnvironment build();
+        DataEnvironmentBuilder copy();
+    }
 }

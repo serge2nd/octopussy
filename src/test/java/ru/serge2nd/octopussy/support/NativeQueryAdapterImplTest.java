@@ -1,6 +1,7 @@
 package ru.serge2nd.octopussy.support;
 
 import org.h2.Driver;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -14,8 +15,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.orm.jpa.vendor.Database;
 import org.springframework.test.context.ActiveProfiles;
 import ru.serge2nd.octopussy.config.WebConfig;
-import ru.serge2nd.octopussy.service.DataEnvironmentService;
 import ru.serge2nd.octopussy.spi.DataEnvironment;
+import ru.serge2nd.octopussy.spi.DataSourceProvider;
 import ru.serge2nd.octopussy.spi.NativeQueryAdapter;
 
 import java.util.List;
@@ -25,7 +26,7 @@ import static java.util.Collections.emptyList;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.NONE;
 import static org.springframework.context.annotation.FilterType.ASSIGNABLE_TYPE;
-import static ru.serge2nd.octopussy.CustomAssertions.assertStrictlyEquals;
+import static ru.serge2nd.test.CustomAssertions.assertStrictlyEquals;
 
 @SpringBootTest(
         classes = NativeQueryAdapterImplTest.Config.class,
@@ -36,11 +37,12 @@ class NativeQueryAdapterImplTest {
     static final String ID = "simpledb";
 
     final NativeQueryAdapterProviderImpl queryAdapterProvider = new NativeQueryAdapterProviderImpl();
-    @Autowired DataEnvironmentService dataEnvService;
+    @Autowired DataSourceProvider provider;
     NativeQueryAdapter queryAdapter;
+    DataEnvironment dataEnv;
 
-    @BeforeEach
-    void setUp() { createDataEnv(); }
+    @BeforeEach void setUp() { createDataEnv(); }
+    @AfterEach void tearDown() { if (dataEnv != null) dataEnv.close(); }
 
     static Stream<Arguments> queriesProvider() {
         return Stream.of(
@@ -63,22 +65,20 @@ class NativeQueryAdapterImplTest {
     }
 
     void createDataEnv() {
-        dataEnvService.find(ID).ifPresent($ -> dataEnvService.delete(ID));
-        DataEnvironment created = dataEnvService.create(DataEnvironmentDefinition.builder()
+        dataEnv = new DataEnvironmentImpl(DataEnvironmentDefinition.builder()
                 .envId(ID)
                 .database(Database.H2)
                 .driverClass(Driver.class.getName())
                 .url(URL_PREFIX + ID)
                 .login("").password("")
-                .build());
-        queryAdapter = queryAdapterProvider.getQueryAdapter(created);
+                .build(), provider);
+        queryAdapter = queryAdapterProvider.getQueryAdapter(dataEnv);
     }
 
     @Configuration
     @EnableAutoConfiguration
     @ComponentScan(value = {
-            "ru.serge2nd.octopussy.config",
-            "ru.serge2nd.octopussy.service"},
+            "ru.serge2nd.octopussy.config"},
             excludeFilters = @Filter(type = ASSIGNABLE_TYPE, value = WebConfig.class))
     static class Config {}
 }

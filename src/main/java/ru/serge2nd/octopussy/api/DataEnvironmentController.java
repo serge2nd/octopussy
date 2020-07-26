@@ -6,7 +6,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.serge2nd.octopussy.spi.DataEnvironment;
 import ru.serge2nd.octopussy.support.DataEnvironmentDefinition;
-import ru.serge2nd.octopussy.service.DataEnvironmentService;
+import ru.serge2nd.octopussy.spi.DataEnvironmentService;
 
 import javax.validation.Valid;
 import java.util.List;

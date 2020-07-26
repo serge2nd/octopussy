@@ -19,10 +19,12 @@ import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.orm.jpa.vendor.Database;
 import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.transaction.PlatformTransactionManager;
+import ru.serge2nd.octopussy.service.DataEnvironmentProxy;
+import ru.serge2nd.octopussy.service.InMemoryDataEnvironmentService;
 import ru.serge2nd.octopussy.spi.DataSourceProvider;
 import ru.serge2nd.octopussy.spi.DataEnvironment;
 import ru.serge2nd.octopussy.spi.NativeQueryAdapterProvider;
-import ru.serge2nd.octopussy.service.DataEnvironmentService;
+import ru.serge2nd.octopussy.spi.DataEnvironmentService;
 import ru.serge2nd.octopussy.support.DataEnvironmentDefinition;
 import ru.serge2nd.octopussy.support.DataEnvironmentImpl;
 import ru.serge2nd.octopussy.spi.NativeQueryAdapter;
@@ -34,11 +36,9 @@ import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Properties;
+import java.util.concurrent.ConcurrentHashMap;
 
-import static ru.serge2nd.octopussy.config.CommonConfig.DATA_ENV_DB;
-import static ru.serge2nd.octopussy.config.CommonConfig.DATA_ENV_ID;
-import static ru.serge2nd.octopussy.config.CommonConfig.QUERY_ADAPTERS_CACHE;
+import static ru.serge2nd.octopussy.App.*;
 
 @Configuration
 @EnableCaching
@@ -49,24 +49,25 @@ import static ru.serge2nd.octopussy.config.CommonConfig.QUERY_ADAPTERS_CACHE;
 @RequiredArgsConstructor
 public class DataConfig implements DataSourceProvider {
     @Immutable @Bean @ConfigurationProperties("spring.datasource.hikari")
-    Properties baseDataSourceProps() { return new Properties(); }
+    Map<String, String> baseDataSourceProps() { return new HashMap<>(); }
     @Immutable @Bean @ConfigurationProperties("spring.jpa.properties")
-    Properties baseJpaProps() { return new Properties(); }
+    Map<String, String> baseJpaProps() { return new HashMap<>(); }
     @Immutable @Bean @ConfigurationProperties("octopussy.data.env.arg.mapping")
     Map<String, String> dataSourcePropertyNames() { return new HashMap<>(); }
 
     @Primary @Bean
-    NativeQueryAdapterProvider nativeQueryAdapterProvider(DataEnvironmentService dataEnvService) {
+    NativeQueryAdapterProvider nativeQueryAdapterProvider() {
         return new NativeQueryAdapterProvider() {
             @Cacheable(
-                key = "#p0.definition.envId",
-                cacheNames = QUERY_ADAPTERS_CACHE)
+                cacheNames = QUERY_ADAPTERS_CACHE,
+                key = "#p0.definition.envId")
             public NativeQueryAdapter getQueryAdapter(DataEnvironment raw) {
                 return this.getQueryAdapter(raw.getDefinition().getEnvId());
             }
             @Cacheable(QUERY_ADAPTERS_CACHE)
             public NativeQueryAdapter getQueryAdapter(String envId) {
-                return dataEnvService.doWith(envId, dataEnv -> nqaProviderTarget().getQueryAdapter(dataEnv));
+                return getDataEnvironmentService()
+                        .doWith(envId, dataEnv -> nqaProviderTarget().getQueryAdapter(dataEnv));
             }
         };
     }
@@ -77,27 +78,34 @@ public class DataConfig implements DataSourceProvider {
         return new DataEnvironmentImpl(definition, this);
     }
 
+    @Override @Bean
+    public DataEnvironmentService getDataEnvironmentService() {
+        return new InMemoryDataEnvironmentService(
+                new ConcurrentHashMap<>(),
+                DataEnvironmentProxy.builder().provider(this));
+    }
+
     @Override
     public Map<String, String> getPropertyNames() {
         return dataSourcePropertyNames();
     }
 
     @Override
-    public DataSource getDataSource(Properties dataSourceProps) {
+    public DataSource getDataSource(Map<String, String> dataSourceProps) {
         return new HikariDataSource(new HikariConfig(
                 HardProperties.from(baseDataSourceProps(), dataSourceProps)));
     }
 
     @Override
-    public EntityManagerFactory getEntityManagerFactory(DataSource dataSource, Properties jpaProps) {
+    public EntityManagerFactory getEntityManagerFactory(DataSource dataSource, Map<String, String> jpaProps) {
         LocalContainerEntityManagerFactoryBean emf = new LocalContainerEntityManagerFactoryBean();
 
         emf.setDataSource(dataSource);
         emf.setJpaVendorAdapter(new HibernateJpaVendorAdapter() {{
-            setDatabase(Database.valueOf(jpaProps.getProperty(DATA_ENV_DB)));
+            setDatabase(Database.valueOf(jpaProps.get(DATA_ENV_DB)));
         }});
 
-        emf.setPersistenceUnitName(jpaProps.getProperty(DATA_ENV_ID) + "PU");
+        emf.setPersistenceUnitName(jpaProps.get(DATA_ENV_ID) + "PU");
         emf.setPackagesToScan("ru.serge2nd.octopussy.data");
         emf.setJpaProperties(HardProperties.from(baseJpaProps(), jpaProps));
 

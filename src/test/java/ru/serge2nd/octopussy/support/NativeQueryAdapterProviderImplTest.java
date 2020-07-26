@@ -19,7 +19,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
 import ru.serge2nd.octopussy.config.WebConfig;
-import ru.serge2nd.octopussy.service.DataEnvironmentService;
+import ru.serge2nd.octopussy.spi.DataEnvironmentService;
 import ru.serge2nd.octopussy.spi.NativeQueryAdapter;
 import ru.serge2nd.octopussy.spi.NativeQueryAdapterProvider;
 

@@ -5,12 +5,10 @@ import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Function;
+import java.util.stream.Collector;
 
 import static java.util.Arrays.stream;
-import static java.util.Collections.emptyMap;
-import static java.util.Collections.enumeration;
-import static java.util.Collections.unmodifiableMap;
-import static java.util.stream.Collectors.toMap;
+import static java.util.Collections.*;
 
 public final class HardProperties extends Properties {
     public static final HardProperties EMPTY = new HardProperties(null, false);
@@ -18,21 +16,25 @@ public final class HardProperties extends Properties {
     private final Map<String, String> map;
 
     public static HardProperties from(Map<?, ?>... sources) {
-        if (stream(sources).allMatch(Map::isEmpty)) {
+        if (stream(sources).allMatch(Map::isEmpty))
             return EMPTY;
-        }
         if (sources.length == 1)
             return new HardProperties(sources[0], true);
 
         return new HardProperties(stream(sources)
                 .flatMap(m -> m.entrySet().stream())
-                .collect(toMap(Map.Entry::getKey, Map.Entry::getValue)),
+                .collect(Collector.of(
+                        HashMap::new,
+                        (m, e) -> m.put(e.getKey(), e.getValue()),
+                        (m1, m2) -> { m1.putAll(m2); return m1; })),
                 false);
     }
 
     public static HardProperties of(Map<?, ?> src) {
         return new HardProperties(src, false);
     }
+
+    public Map<String, String> toMap() { return map; }
 
     @SuppressWarnings("unchecked,rawtypes")
     private HardProperties(Map<?, ?> src, boolean copy) {
@@ -42,8 +44,10 @@ public final class HardProperties extends Properties {
         }
 
         src.forEach((k, v) -> {
-            if (!(k instanceof String && v instanceof String))
-                throw new IllegalArgumentException("expected String as key and value");
+            if (!(k instanceof String))
+                throw new IllegalArgumentException("expected String as key");
+            if (!(v == null || v instanceof String))
+                throw new IllegalArgumentException("expected String or null as value");
         });
         this.map = unmodifiableMap(copy ? new HashMap(src) : src);
     }

@@ -3,13 +3,14 @@ package ru.serge2nd.octopussy.service;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.orm.jpa.vendor.Database;
 import ru.serge2nd.octopussy.spi.DataEnvironment;
 import ru.serge2nd.octopussy.service.ex.DataEnvironmentExistsException;
 import ru.serge2nd.octopussy.service.ex.DataEnvironmentNotFoundException;
 import ru.serge2nd.octopussy.support.DataEnvironmentDefinition;
 import ru.serge2nd.octopussy.support.DataEnvironmentImpl;
-import ru.serge2nd.octopussy.service.InMemoryDataEnvironmentService.DataEnvironmentProxy;
 
 import java.util.*;
 import java.util.concurrent.*;
@@ -22,6 +23,7 @@ import static java.util.concurrent.CompletableFuture.supplyAsync;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.catchThrowable;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Answers.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.*;
 import static org.mockito.internal.util.collections.Sets.newSet;
 
@@ -30,6 +32,9 @@ class InMemoryDataEnvironmentServiceTest {
     static final String ID1 = "5010";
     static final String ID2 = "7010";
 
+    @Mock(answer = RETURNS_DEEP_STUBS)
+    DataEnvironment.DataEnvironmentBuilder builderMock;
+
     InMemoryDataEnvironmentService dataEnvService;
     Map<String, DataEnvironment> repository;
     final DataEnvironment existing = spy(dataEnv(ID2));
@@ -37,7 +42,7 @@ class InMemoryDataEnvironmentServiceTest {
     @BeforeEach
     void setUp() {
         repository = new ConcurrentHashMap<>(singletonMap(ID2, existing));
-        dataEnvService = new InMemoryDataEnvironmentService(null, () -> repository);
+        dataEnvService = new InMemoryDataEnvironmentService(repository, builderMock);
     }
 
     @Test
@@ -107,13 +112,14 @@ class InMemoryDataEnvironmentServiceTest {
         // GIVEN
         DataEnvironment existing = repository.get(ID2);
         DataEnvironment toCreate = dataEnv(ID1);
+        DataEnvironment expected = mock(DataEnvironment.class);
+        when(builderMock.copy().definition(same(toCreate.getDefinition())).build()).thenReturn(expected);
 
         // WHEN
         DataEnvironment created = dataEnvService.create(toCreate);
 
         // THEN
-        assertTrue(created instanceof DataEnvironmentProxy, "expected a proxy");
-        assertSame(toCreate.getDefinition(), created.getDefinition(), "expected same definition");
+        assertSame(expected, created, "expected builder result");
         // AND
         assertEquals(new HashMap<String, DataEnvironment>() {{
             put(ID1, created);
@@ -174,7 +180,7 @@ class InMemoryDataEnvironmentServiceTest {
 
         // THEN
         try {
-            result.get(2, SECONDS);
+            result.get(1, SECONDS);
             fail("lack of lock");
         } catch (TimeoutException e) { // NOOP
         } finally { notifyOn(dataEnvService);}
@@ -198,7 +204,7 @@ class InMemoryDataEnvironmentServiceTest {
 
         // THEN
         try {
-            result.get(2, SECONDS);
+            result.get(1, SECONDS);
             fail("lack of lock");
         } catch (TimeoutException e) { // NOOP
         } finally { notifyOn(dataEnvMock); }
@@ -222,13 +228,14 @@ class InMemoryDataEnvironmentServiceTest {
         }} return null;
     }
 
-    static void notifyOn(Object lock) {
-        synchronized (lock) { lock.notifyAll(); }
-    }
+    static void notifyOn(Object lock) { synchronized (lock) { lock.notifyAll(); } }
 
     static DataEnvironment dataEnv(String envId) {
         return new DataEnvironmentImpl(
-                DataEnvironmentDefinition.builder().envId(envId).build(),
+                DataEnvironmentDefinition.builder()
+                        .envId(envId)
+                        .database(Database.H2)
+                        .build(),
                 null, null, null) {};
     }
 }
