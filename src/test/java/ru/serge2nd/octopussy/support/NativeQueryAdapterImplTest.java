@@ -26,7 +26,7 @@ import static java.util.Collections.emptyList;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.NONE;
 import static org.springframework.context.annotation.FilterType.ASSIGNABLE_TYPE;
-import static ru.serge2nd.test.CustomAssertions.assertStrictlyEquals;
+import static ru.serge2nd.test.util.CustomAssertions.assertStrictlyEquals;
 
 @SpringBootTest(
         classes = NativeQueryAdapterImplTest.Config.class,

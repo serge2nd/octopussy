@@ -30,7 +30,7 @@ import ru.serge2nd.octopussy.support.DataEnvironmentImpl;
 import ru.serge2nd.octopussy.spi.NativeQueryAdapter;
 import ru.serge2nd.octopussy.support.NativeQueryAdapterProviderImpl;
 import ru.serge2nd.util.HardProperties;
-import ru.serge2nd.util.bean.Immutable;
+import ru.serge2nd.util.immutable.Immutable;
 
 import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;

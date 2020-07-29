@@ -1,4 +1,4 @@
-package ru.serge2nd.test;
+package ru.serge2nd.test.util;
 
 import org.opentest4j.AssertionFailedError;
 
