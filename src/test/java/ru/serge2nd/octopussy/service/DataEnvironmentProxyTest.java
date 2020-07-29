@@ -32,15 +32,13 @@ import static org.springframework.test.util.ReflectionTestUtils.setField;
 @ExtendWith(MockitoExtension.class)
 public class DataEnvironmentProxyTest {
     static final String ID = "5000";
+    static final DataEnvironmentDefinition DEF = DataEnvironmentDefinition.builder().envId(ID).build();
 
     @Mock DataEnvironment dataEnvMock;
     @Mock(answer = RETURNS_DEEP_STUBS) DataSourceProvider providerMock;
     DataEnvironmentProxy proxy;
 
-    @BeforeEach
-    void setUp() {
-        proxy = new DataEnvironmentProxy(DataEnvironmentDefinition.builder().envId(ID).build(), providerMock);
-    }
+    @BeforeEach void setUp() { proxy = new DataEnvironmentProxy(DEF, providerMock); }
 
     @Test
     void testGetTargetCheckOpen() {

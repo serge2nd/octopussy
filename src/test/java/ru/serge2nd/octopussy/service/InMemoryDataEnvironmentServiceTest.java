@@ -9,6 +9,7 @@ import org.springframework.orm.jpa.vendor.Database;
 import ru.serge2nd.octopussy.spi.DataEnvironment;
 import ru.serge2nd.octopussy.service.ex.DataEnvironmentExistsException;
 import ru.serge2nd.octopussy.service.ex.DataEnvironmentNotFoundException;
+import ru.serge2nd.octopussy.spi.DataEnvironment.DataEnvironmentBuilder;
 import ru.serge2nd.octopussy.support.DataEnvironmentDefinition;
 import ru.serge2nd.octopussy.support.DataEnvironmentImpl;
 
@@ -32,9 +33,7 @@ class InMemoryDataEnvironmentServiceTest {
     static final String ID1 = "5010";
     static final String ID2 = "7010";
 
-    @Mock(answer = RETURNS_DEEP_STUBS)
-    DataEnvironment.DataEnvironmentBuilder builderMock;
-
+    @Mock(answer = RETURNS_DEEP_STUBS) DataEnvironmentBuilder builderMock;
     InMemoryDataEnvironmentService dataEnvService;
     Map<String, DataEnvironment> repository;
     final DataEnvironment existing = spy(dataEnv(ID2));
@@ -168,7 +167,8 @@ class InMemoryDataEnvironmentServiceTest {
         CountDownLatch freeLocks = new CountDownLatch(1);
         InMemoryDataEnvironmentService dataEnvService = spy(this.dataEnvService);
         // AND
-        doAnswer(i -> this.dataEnvService.compute(ID1, $ -> waitOn(dataEnvService, freeLocks)))
+        doAnswer(i -> this.dataEnvService.compute(
+                ID1, $ -> waitOn(dataEnvService, freeLocks)))
                 .when(dataEnvService).compute(anyString(), any(UnaryOperator.class));
         // AND
         runAsync(() -> dataEnvService.create(dataEnv(ID1)));

@@ -16,10 +16,10 @@ public class ImmutableProviderConfig {
     @Bean
     public ImmutableProvider<?> delegatingImmutableProvider() {
         DelegatingImmutableProvider<Object> provider = new DelegatingImmutableProvider<>();
-        provider.registerDelegate(Properties.class, $ -> of(HardProperties::of));
-        provider.registerDelegate(NavigableMap.class, $ -> of(Collections::<Object, Object>unmodifiableNavigableMap));
-        provider.registerDelegate(SortedMap.class, $ -> of(Collections::<Object, Object>unmodifiableSortedMap));
-        provider.registerDelegate(Map.class, $ -> of(Collections::<Object, Object>unmodifiableMap));
+        provider.addDelegate(Properties.class, $ -> of(HardProperties::of));
+        provider.addDelegate(NavigableMap.class, $ -> of(Collections::<Object, Object>unmodifiableNavigableMap));
+        provider.addDelegate(SortedMap.class, $ -> of(Collections::<Object, Object>unmodifiableSortedMap));
+        provider.addDelegate(Map.class, $ -> of(Collections::<Object, Object>unmodifiableMap));
         return provider;
     }
 }

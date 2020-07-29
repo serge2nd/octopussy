@@ -7,16 +7,15 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.transaction.PlatformTransactionManager;
 import ru.serge2nd.octopussy.spi.DataEnvironment;
 import ru.serge2nd.octopussy.spi.DataSourceProvider;
-import ru.serge2nd.util.HardProperties;
 
 import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
 import java.io.Closeable;
 import java.util.Map;
 
-import static java.util.Collections.singletonMap;
 import static lombok.AccessLevel.PROTECTED;
 import static ru.serge2nd.octopussy.App.*;
+import static ru.serge2nd.util.HardProperties.properties;
 
 @Slf4j
 @Getter
@@ -32,15 +31,15 @@ public class DataEnvironmentImpl implements DataEnvironment {
         this.definition = definition;
         Map<String, String> keys = provider.getPropertyNames();
         try {
-            this.dataSource = provider.getDataSource(HardProperties.from(
-                    singletonMap(keys.get(DATA_ENV_DRIVER_CLASS), definition.getDriverClass()),
-                    singletonMap(keys.get(DATA_ENV_URL), definition.getUrl()),
-                    singletonMap(keys.get(DATA_ENV_LOGIN), definition.getLogin()),
-                    singletonMap(keys.get(DATA_ENV_PASSWORD), definition.getPassword())
+            this.dataSource = provider.getDataSource(properties(
+                    keys.get(DATA_ENV_DRIVER_CLASS), definition.getDriverClass(),
+                    keys.get(DATA_ENV_URL), definition.getUrl(),
+                    keys.get(DATA_ENV_LOGIN), definition.getLogin(),
+                    keys.get(DATA_ENV_PASSWORD), definition.getPassword()
             ).toMap());
-            this.entityManagerFactory = provider.getEntityManagerFactory(this.dataSource, HardProperties.from(
-                    singletonMap(DATA_ENV_DB, definition.getDatabase().toString()),
-                    singletonMap(DATA_ENV_ID, definition.getEnvId())
+            this.entityManagerFactory = provider.getEntityManagerFactory(this.dataSource, properties(
+                    DATA_ENV_DB, definition.getDatabase().toString(),
+                    DATA_ENV_ID, definition.getEnvId()
             ).toMap());
             this.transactionManager = provider.getTransactionManager(this.entityManagerFactory);
         } catch (Exception e) {
