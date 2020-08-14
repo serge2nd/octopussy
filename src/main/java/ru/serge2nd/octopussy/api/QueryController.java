@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import ru.serge2nd.octopussy.spi.NativeQueryAdapter;
-import ru.serge2nd.octopussy.support.NativeQueryAdapterProviderImpl;
+import ru.serge2nd.octopussy.spi.NativeQueryAdapterProvider;
 
 import javax.validation.Valid;
 import java.util.List;
@@ -19,7 +19,7 @@ import static java.util.Collections.singletonMap;
 @RestController
 @RequiredArgsConstructor
 public class QueryController {
-    private final NativeQueryAdapterProviderImpl queryAdapterFactory;
+    private final NativeQueryAdapterProvider queryAdapterFactory;
 
     @PostMapping("executeQuery")
     public @ResponseBody List<?> executeQuery(@Valid @RequestBody QueryRq rq) {
