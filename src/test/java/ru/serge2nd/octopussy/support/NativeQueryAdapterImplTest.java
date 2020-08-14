@@ -12,8 +12,9 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.ComponentScan.Filter;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.orm.jpa.vendor.Database;
 import org.springframework.test.context.ActiveProfiles;
+
+import ru.serge2nd.octopussy.App;
 import ru.serge2nd.octopussy.config.WebConfig;
 import ru.serge2nd.octopussy.spi.DataEnvironment;
 import ru.serge2nd.octopussy.spi.DataSourceProvider;
@@ -67,10 +68,11 @@ class NativeQueryAdapterImplTest {
     void createDataEnv() {
         dataEnv = new DataEnvironmentImpl(DataEnvironmentDefinition.builder()
                 .envId(ID)
-                .database(Database.H2)
-                .driverClass(Driver.class.getName())
-                .url(URL_PREFIX + ID)
-                .login("").password("")
+                .property(App.DATA_ENV_DB, "H2")
+                .property(App.DATA_ENV_DRIVER_CLASS, Driver.class.getName())
+                .property(App.DATA_ENV_URL, URL_PREFIX + ID)
+                .property(App.DATA_ENV_LOGIN, "")
+                .property(App.DATA_ENV_PASSWORD, "")
                 .build(), provider);
         queryAdapter = queryAdapterProvider.getQueryAdapter(dataEnv);
     }

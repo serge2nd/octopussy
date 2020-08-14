@@ -5,8 +5,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.orm.jpa.vendor.Database;
 import ru.serge2nd.octopussy.spi.DataEnvironment;
+import ru.serge2nd.octopussy.App;
 import ru.serge2nd.octopussy.service.ex.DataEnvironmentExistsException;
 import ru.serge2nd.octopussy.service.ex.DataEnvironmentNotFoundException;
 import ru.serge2nd.octopussy.spi.DataEnvironment.DataEnvironmentBuilder;
@@ -234,7 +234,7 @@ class InMemoryDataEnvironmentServiceTest {
         return new DataEnvironmentImpl(
                 DataEnvironmentDefinition.builder()
                         .envId(envId)
-                        .database(Database.H2)
+                        .property(App.DATA_ENV_DB, "H2")
                         .build(),
                 null, null, null) {};
     }

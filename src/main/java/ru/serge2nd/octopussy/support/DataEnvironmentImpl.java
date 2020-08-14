@@ -30,15 +30,16 @@ public class DataEnvironmentImpl implements DataEnvironment {
     public DataEnvironmentImpl(DataEnvironmentDefinition definition, DataSourceProvider provider) {
         this.definition = definition;
         Map<String, String> keys = provider.getPropertyNames();
+        Map<String, String> props = definition.getProperties();
         try {
             this.dataSource = provider.getDataSource(properties(
-                    keys.get(DATA_ENV_DRIVER_CLASS), definition.getDriverClass(),
-                    keys.get(DATA_ENV_URL), definition.getUrl(),
-                    keys.get(DATA_ENV_LOGIN), definition.getLogin(),
-                    keys.get(DATA_ENV_PASSWORD), definition.getPassword()
+                    keys.get(DATA_ENV_DRIVER_CLASS), props.get(DATA_ENV_DRIVER_CLASS),
+                    keys.get(DATA_ENV_URL), props.get(DATA_ENV_URL),
+                    keys.get(DATA_ENV_LOGIN), props.get(DATA_ENV_LOGIN),
+                    keys.get(DATA_ENV_PASSWORD), props.get(DATA_ENV_PASSWORD)
             ).toMap());
             this.entityManagerFactory = provider.getEntityManagerFactory(this.dataSource, properties(
-                    DATA_ENV_DB, definition.getDatabase().toString(),
+                    DATA_ENV_DB, props.get(DATA_ENV_DB),
                     DATA_ENV_ID, definition.getEnvId()
             ).toMap());
             this.transactionManager = provider.getTransactionManager(this.entityManagerFactory);
