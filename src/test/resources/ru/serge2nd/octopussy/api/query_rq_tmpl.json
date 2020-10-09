@@ -1,0 +1,11 @@
+{
+  "queries": [{
+    "query": "%s",
+    "params": {
+      "%d": "%f"
+    }
+  }],
+  "params": {
+    "%f": "%d"
+  }
+}

@@ -1,1 +1,1 @@
-# octopussy
+# octopussy [![Build Status](https://travis-ci.org/serge2nd/octopussy.svg?branch=develop)](https://travis-ci.org/serge2nd/octopussy) [![codecov](https://codecov.io/gh/serge2nd/octopussy/branch/develop/graph/badge.svg)](https://codecov.io/gh/serge2nd/octopussy/branch/develop)

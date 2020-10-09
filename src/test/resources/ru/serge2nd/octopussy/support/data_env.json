@@ -1,0 +1,7 @@
+{
+  "envId": "db1000",
+  "properties": {
+    "url": "jdbc:h2:mem:db1000",
+    "login": "serge"
+  }
+}

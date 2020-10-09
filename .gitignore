@@ -1,0 +1,7 @@
+.*
+!.mvn
+!.travis*
+!.dockerignore
+
+*.iml
+target/
