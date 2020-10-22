@@ -5,7 +5,6 @@ import ru.serge2nd.collection.Unmodifiable;
 import ru.serge2nd.octopussy.spi.DataEnvironment;
 import ru.serge2nd.octopussy.spi.DataEnvironmentService;
 
-import javax.annotation.PreDestroy;
 import java.io.Closeable;
 import java.util.Collection;
 import java.util.Map;
@@ -61,7 +60,7 @@ public class InMemoryDataEnvironmentService implements DataEnvironmentService, C
                 .close(), envId);
     }
 
-    @Override @PreDestroy
+    @Override
     public void close() { for (DataEnvironment dataEnv : byId.values()) preClose.apply(dataEnv).close(); }
 
     protected DataEnvironment computeAndRemove(Consumer<DataEnvironment> consumer, String envId) {

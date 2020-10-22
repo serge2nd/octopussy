@@ -4,14 +4,11 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.transaction.PlatformTransactionManager;
-import ru.serge2nd.collection.Unmodifiable;
-import ru.serge2nd.octopussy.spi.DataEnvironment;
 import ru.serge2nd.octopussy.spi.JpaEnvironment;
 
 import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
 import java.io.Closeable;
-import java.util.List;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -46,7 +43,7 @@ public class JpaEnvironmentImpl implements JpaEnvironment {
     @Override
     @SuppressWarnings("unchecked")
     public <T> T unwrap(Class<T> t) {
-        if (HIERARCHY.contains(t))                 return (T)this;
+        if (t.isAssignableFrom(this.getClass()))   return (T)this;
         if (DataSource.class == t)                 return (T)getDataSource();
         if (EntityManagerFactory.class == t)       return (T)getEntityManagerFactory();
         if (PlatformTransactionManager.class == t) return (T)getTransactionManager();
@@ -69,6 +66,4 @@ public class JpaEnvironmentImpl implements JpaEnvironment {
     }
 
     private static final Closeable NOOP = () -> {};
-
-    private static final List<Class<?>> HIERARCHY = Unmodifiable.of(DataEnvironment.class, JpaEnvironment.class, JpaEnvironmentImpl.class);
 }

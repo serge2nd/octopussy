@@ -33,7 +33,9 @@ import static ru.serge2nd.octopussy.App.*;
 public class DataEnvConfig implements DataEnvironmentFactory, NativeQueryAdapterProvider {
     final PersistenceUnitProvider puProvider;
 
-    @Bean DataEnvironmentService dataEnvironmentService() { return new InMemoryDataEnvironmentService(
+    @Bean(destroyMethod = "close")
+    @SuppressWarnings("ContextJavaBeanUnresolvedMethodsInspection")
+    DataEnvironmentService dataEnvironmentService() { return new InMemoryDataEnvironmentService(
         new ConcurrentHashMap<>(),
         DataEnvironmentProxy.builder()
             .service(this::dataEnvironmentService)
