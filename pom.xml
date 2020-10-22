@@ -7,52 +7,11 @@
     <groupId>ru.serge2nd</groupId>
     <artifactId>octopussy</artifactId>
     <version>0.9.0-SNAPSHOT</version>
-    <packaging>jar</packaging>
-
-    <dependencies>
-        <dependency>
-            <groupId>ru.serge2nd</groupId>
-            <artifactId>bunch-of-crafts</artifactId>
-            <version>${serge2nd-crafts.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-web</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-data-jpa</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-loader</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.hibernate.validator</groupId>
-            <artifactId>hibernate-validator</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <scope>provided</scope>
-        </dependency>
-
-        <!--TEST SCOPE-->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-test</artifactId>
-            <scope>test</scope>
-            <exclusions>
-                <exclusion><groupId>junit</groupId><artifactId>*</artifactId></exclusion>
-                <exclusion><groupId>org.junit.vintage</groupId><artifactId>*</artifactId></exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>com.h2database</groupId>
-            <artifactId>h2</artifactId>
-            <scope>test</scope>
-        </dependency>
-    </dependencies>
+    <packaging>pom</packaging>
+    <modules>
+        <module>octopussy-service</module>
+        <module>octopussy-spring-boot</module>
+    </modules>
 
     <dependencyManagement>
         <dependencies>
@@ -109,7 +68,6 @@
 
     <build>
         <plugins>
-            <!--region Compile & test -->
             <plugin>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>${compiler-plugin.version}</version>
@@ -150,70 +108,7 @@
                     <goals><goal>report</goal></goals>
                 </execution></executions>
             </plugin>
-            <!--endregion-->
-
-            <!--region Assembly -->
-            <plugin>
-                <artifactId>maven-dependency-plugin</artifactId>
-                <version>${dependency-plugin.version}</version>
-                <executions><execution>
-                    <phase>package</phase>
-                    <goals><goal>copy-dependencies</goal></goals>
-                    <configuration>
-                        <excludeArtifactIds>spring-boot-loader</excludeArtifactIds>
-                        <outputDirectory>${project.build.directory}/lib</outputDirectory>
-                    </configuration>
-                </execution></executions>
-            </plugin>
-            <plugin>
-                <artifactId>maven-assembly-plugin</artifactId>
-                <version>${assembly-plugin.version}</version>
-                <configuration><descriptors>
-                    <descriptor>assembly.xml</descriptor>
-                </descriptors><archive><manifestEntries>
-                    <Start-Class>ru.serge2nd.octopussy.App</Start-Class>
-                </manifestEntries><manifest>
-                    <mainClass>org.springframework.boot.loader.PropertiesLauncher</mainClass>
-                    <addClasspath>true</addClasspath>
-                    <classpathPrefix>lib/</classpathPrefix>
-                    <useUniqueVersions>false</useUniqueVersions>
-                </manifest>
-                </archive></configuration>
-                <executions><execution>
-                    <phase>package</phase>
-                    <goals><goal>single</goal></goals>
-                </execution></executions>
-            </plugin>
-            <plugin>
-                <artifactId>maven-source-plugin</artifactId>
-                <version>${source-plugin.version}</version>
-                <executions><execution>
-                    <goals><goal>jar</goal></goals>
-                    <configuration>
-                        <excludeResources>true</excludeResources>
-                    </configuration>
-                </execution></executions>
-            </plugin>
-            <plugin>
-                <groupId>com.spotify</groupId>
-                <artifactId>dockerfile-maven-plugin</artifactId>
-                <version>${dockerfile-plugin.version}</version>
-                <configuration>
-                    <contextDirectory>${project.build.directory}</contextDirectory>
-                    <repository>${project.groupId}/${project.artifactId}</repository>
-                    <tag>${project.version}</tag>
-                </configuration>
-            </plugin>
-            <!--endregion-->
         </plugins>
-
-        <resources><resource>
-            <directory>src/main/resources</directory>
-        </resource><resource>
-            <directory>src/main/docker</directory>
-            <filtering>true</filtering>
-            <targetPath>${project.build.directory}</targetPath>
-        </resource></resources>
     </build>
 
     <properties>
@@ -238,6 +133,7 @@
         <surefire-plugin.version>2.22.2</surefire-plugin.version>
         <sniffer-plugin.version>1.19</sniffer-plugin.version>
         <jacoco-plugin.version>0.8.6</jacoco-plugin.version>
+        <jar-plugin.version>3.2.0</jar-plugin.version>
         <source-plugin.version>3.2.1</source-plugin.version>
         <dependency-plugin.version>3.1.2</dependency-plugin.version>
         <assembly-plugin.version>3.3.0</assembly-plugin.version>
