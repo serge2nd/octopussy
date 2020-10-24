@@ -121,9 +121,14 @@
         <resources><resource>
             <directory>src/main/resources</directory>
         </resource><resource>
-            <directory>octopussy-spring-boot/src/main/docker</directory>
+            <directory>src/main/docker</directory>
             <filtering>true</filtering>
             <targetPath>${project.build.directory}</targetPath>
         </resource></resources>
     </build>
+
+    <properties>
+        <dist.clf>dist</dist.clf>
+        <dist.file>${project.build.finalName}-${dist.clf}.jar</dist.file>
+    </properties>
 </project>

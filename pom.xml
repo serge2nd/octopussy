@@ -117,8 +117,6 @@
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <dist.clf>dist</dist.clf>
-        <dist.file>${project.build.finalName}-${dist.clf}.jar</dist.file>
 
         <serge2nd-crafts.version>0.9.0-SNAPSHOT</serge2nd-crafts.version>
         <lombok.version>1.18.12</lombok.version>
