@@ -1,6 +1,7 @@
 package ru.serge2nd.octopussy.support;
 
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
@@ -14,15 +15,17 @@ import java.io.IOException;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+import static org.assertj.core.api.Assertions.catchThrowableOfType;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Answers.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.*;
-import static ru.serge2nd.octopussy.support.DataEnvironmentDefinitionTest.DEF;
 
 @TestInstance(Lifecycle.PER_CLASS)
 class JpaEnvironmentImplTest {
     final Supplier<DataSource>                       dataSourceMock = mock(DataSourceProvider.class, RETURNS_DEEP_STUBS);
     final Function<DataSource, EntityManagerFactory> emfMock = mock(EmfProvider.class, RETURNS_DEEP_STUBS);
+
+    @BeforeEach void setUp() { reset((Object)dataSourceMock); }
 
     @Test void testInitialization() {
         // WHEN
@@ -35,6 +38,21 @@ class JpaEnvironmentImplTest {
         verify(dataSourceMock, times(1)).get(), () ->
         verify(emfMock, times(1)).apply(same(result.getDataSource())));
     }
+    @Test void testFailedInitialization() {
+        // GIVEN
+        Throwable expected = new ArrayStoreException();
+        when(dataSourceMock.get()).thenThrow(expected);
+        boolean[] closed = new boolean[1];
+
+        // WHEN
+        Throwable error = catchThrowableOfType(()->new JpaEnvironmentImpl(DataEnvironmentDefinitionTest.DEF, dataSourceMock, emfMock) {
+            public void close() { closed[0] = true; }
+        }, expected.getClass());
+
+        /* THEN */ assertAll(() ->
+        assertNotNull(error, "expected an error"), () ->
+        assertTrue(closed[0], "must call close() on error"));
+    }
 
     @Test void testUnwrap() {
         // WHEN
@@ -45,7 +63,8 @@ class JpaEnvironmentImplTest {
         assertSame(jpaEnv, jpaEnv.unwrap(JpaEnvironment.class), "must unwrap " + JpaEnvironment.class.getName()), () ->
         assertSame(jpaEnv, jpaEnv.unwrap(DataEnvironment.class), "must unwrap " + DataEnvironment.class.getName()), () ->
         assertSame(jpaEnv.getDataSource(), jpaEnv.unwrap(DataSource.class), "must unwrap " + DataSource.class.getName()), () ->
-        assertSame(jpaEnv.getEntityManagerFactory(), jpaEnv.unwrap(EntityManagerFactory.class), "must unwrap " + EntityManagerFactory.class.getName()));
+        assertSame(jpaEnv.getEntityManagerFactory(), jpaEnv.unwrap(EntityManagerFactory.class), "must unwrap " + EntityManagerFactory.class.getName()), () ->
+        assertThrows(IllegalArgumentException.class, ()->jpaEnv.unwrap(DataEnvironmentDefinition.class)));
     }
 
     @Test void testIsClosedNullEmf() {

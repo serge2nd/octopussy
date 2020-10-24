@@ -1,5 +1,6 @@
 package ru.serge2nd.octopussy.support;
 
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import ru.serge2nd.collection.Unmodifiable;
 import ru.serge2nd.octopussy.spi.ResultTransformer;
@@ -12,7 +13,7 @@ public enum ToListResultTransformer implements ResultTransformer {
     INSTANCE;
 
     @Override
-    public Object transform(Object[] tuple, String[] aliases) {
+    public Object transform(@NonNull Object[] tuple, String[] aliases) {
         if (tuple.length == 1)
             return extractValue(tuple[0]);
         return extractRow(tuple);
@@ -68,7 +69,7 @@ public enum ToListResultTransformer implements ResultTransformer {
         }}
     }
 
-    private static class LobFetchFailedException extends RuntimeException {
+    static class LobFetchFailedException extends RuntimeException {
         LobFetchFailedException(Class<?> t, Throwable cause) {
             super("cannot fetch " + t.getName(), cause);
         }

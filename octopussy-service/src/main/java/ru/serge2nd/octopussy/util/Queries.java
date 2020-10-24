@@ -26,7 +26,7 @@ public interface Queries extends List<QueryWithParams> {
      * @param queries array to be wrapped by {@link Queries}
      * @return unmodifiable {@link Queries}
      */
-    static Queries queries(QueryWithParams... queries) {
+    static Queries queries(@NonNull QueryWithParams... queries) {
         if (queries.length == 0) return EMPTY;
         return new UnmodifiableArrayQueries(queries);
     }
@@ -38,7 +38,7 @@ public interface Queries extends List<QueryWithParams> {
      * @return unmodifiable {@link Queries}
      */
     @SuppressWarnings("rawtypes")
-    static Queries queries(List<? extends QueryWithParams> queries) {
+    static Queries queries(@NonNull List<? extends QueryWithParams> queries) {
         if ((List)emptyList() == queries) return EMPTY;
         if (queries instanceof UnmodifiableQueries || queries instanceof UnmodifiableArrayQueries)
             return (Queries)queries;
