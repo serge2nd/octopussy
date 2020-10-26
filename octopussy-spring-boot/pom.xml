@@ -55,6 +55,12 @@
         </dependency>
         <dependency>
             <groupId>ru.serge2nd</groupId>
+            <artifactId>test-guns</artifactId>
+            <version>${test-guns.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>ru.serge2nd</groupId>
             <artifactId>octopussy-service</artifactId>
             <version>${project.version}</version>
             <type>test-jar</type>

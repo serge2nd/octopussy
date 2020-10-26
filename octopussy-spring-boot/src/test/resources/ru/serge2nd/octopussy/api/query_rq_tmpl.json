@@ -2,10 +2,10 @@
   "queries": [{
     "query": "%s",
     "params": {
-      "%d": "%f"
+      "%s": %f
     }
   }],
   "params": {
-    "%f": "%d"
+    "%s": %d
   }
 }

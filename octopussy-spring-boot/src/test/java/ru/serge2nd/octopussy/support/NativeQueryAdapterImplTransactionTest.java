@@ -31,7 +31,11 @@ import java.util.stream.Stream;
 
 import static java.util.Collections.emptyMap;
 import static javax.persistence.SynchronizationType.SYNCHRONIZED;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Answers.RETURNS_DEEP_STUBS;
 import static org.mockito.Answers.RETURNS_SELF;
 import static org.mockito.Mockito.*;
@@ -39,6 +43,7 @@ import static org.springframework.transaction.TransactionDefinition.*;
 import static ru.serge2nd.octopussy.support.DataEnvironmentDefinitionTest.DEF;
 import static ru.serge2nd.octopussy.support.DataEnvironmentDefinitionTest.ID;
 import static ru.serge2nd.octopussy.util.Queries.queries;
+import static ru.serge2nd.test.Asserting.assertEach;
 
 @NoWebSpringBootTest
 @TestInstance(Lifecycle.PER_CLASS)
@@ -81,7 +86,7 @@ class NativeQueryAdapterImplTransactionTest implements BaseContextTest {
         // WHEN
         NativeQueryAdapter queryAdapter = adapterProvider.getQueryAdapter(ID);
 
-        /* THEN */ assertAll(() ->
+        /* THEN */ assertEach(() ->
         assertSame(queryAdapterMock, queryAdapter, "expected cached object"), () ->
         verifyNoInteractions(envServiceMock));
     }
@@ -95,7 +100,7 @@ class NativeQueryAdapterImplTransactionTest implements BaseContextTest {
         List<?> result = adapterProvider.getQueryAdapter(ID).execute(Q, emptyMap());
 
         // THEN
-        captureTransaction(tx -> assertAll(() ->
+        captureTransaction(tx -> assertEach(() ->
             assertTrue(result.isEmpty(), "wrong result"), () ->
             assertEquals(ISOLATION_DEFAULT, tx.getIsolationLevel(), "wrong isolation"), () ->
             assertEquals(PROPAGATION_SUPPORTS, tx.getPropagationBehavior(), "wrong propagation"), () ->
@@ -113,7 +118,7 @@ class NativeQueryAdapterImplTransactionTest implements BaseContextTest {
         int[] result = adapterProvider.getQueryAdapter(ID).executeUpdate(queries(new QueryWithParams(Q, emptyMap())));
 
         // THEN
-        captureTransaction(tx -> assertAll(() ->
+        captureTransaction(tx -> assertEach(() ->
             assertArrayEquals(expected, result, "wrong result"), () ->
             assertEquals(ISOLATION_DEFAULT, tx.getIsolationLevel(), "wrong isolation"), () ->
             assertEquals(PROPAGATION_REQUIRED, tx.getPropagationBehavior(), "wrong propagation"), () ->

@@ -14,9 +14,15 @@ import java.util.List;
 
 import static java.lang.reflect.Array.get;
 import static java.util.Arrays.asList;
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.hamcrest.CoreMatchers.instanceOf;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static ru.serge2nd.octopussy.support.ToListResultTransformer.INSTANCE;
+import static ru.serge2nd.test.matcher.AssertThat.assertThat;
+import static ru.serge2nd.test.matcher.CommonMatch.equalTo;
+import static ru.serge2nd.test.matcher.CommonMatch.fails;
 
 @TestInstance(Lifecycle.PER_CLASS)
 class ToListResultTransformerTest {
@@ -49,41 +55,41 @@ class ToListResultTransformerTest {
         // WHEN
         Object result = INSTANCE.transform(a, null);
 
-        /* THEN */ assertAll(() ->
-        assertEquals(expected, result, "expected same data"), () ->
-        assertSame(expected.getClass(), result.getClass(), "expected unmodifiable list"), () ->
-        assertSame(expected.get(6).getClass(), ((List<?>)result).get(6).getClass(), "expected nested unmodifiable list"), () ->
+        // THEN
+        assertThat(
+        result                  , instanceOf(expected.getClass()),
+        result                  , equalTo(expected),
+        ((List<?>)result).get(6), instanceOf(expected.get(6).getClass()), () ->
         verify(c, times(1)).free(), () ->
         verify(b, times(1)).free());
     }
     @SuppressWarnings("ConstantConditions")
-    @Test void testNullTuple() { assertThrows(IllegalArgumentException.class, ()->INSTANCE.transform(null, null)); }
+    @Test void testNullTuple() { assertThat(()->INSTANCE.transform(null, null), fails(IllegalArgumentException.class)); }
 
     @Test void testTransformList() {
         // GIVEN
-        List<?> l = asList("abc", 54);
+        List<?> expected = asList("abc", 54);
 
         // WHEN
-        List<?> result = INSTANCE.transform(l);
+        List<?> result = INSTANCE.transform(expected);
 
-        /* THEN */ assertAll(() ->
-        assertEquals(l, result), () ->
-        assertTrue(result instanceof Unmodifiable, "expected unmodifiable list"));
+        // THEN
+        assertThat(result, instanceOf(Unmodifiable.class), equalTo(expected));
     }
-    @Test void testNullList() { assertThrows(IllegalArgumentException.class, ()->INSTANCE.transform(null)); }
+    @Test void testNullList() { assertThat(()->INSTANCE.transform(null), fails(IllegalArgumentException.class)); }
 
     @Test void testClobError() throws SQLException {
         Clob[] c = {mock(Clob.class)};
         when(c[0].getSubString(1, 0)).thenThrow(SQLException.class);
 
-        assertThrows(LobFetchFailedException.class, ()->INSTANCE.transform(c, null));
-        verify(c[0], times(1)).free();
+        assertThat(()->INSTANCE.transform(c, null), fails(LobFetchFailedException.class), () ->
+        verify(c[0], times(1)).free());
     }
     @Test void testBlobError() throws SQLException {
         Blob[] b = {mock(Blob.class)};
         when(b[0].getBytes(1, 0)).thenThrow(SQLException.class);
 
-        assertThrows(LobFetchFailedException.class, ()->INSTANCE.transform(b, null));
-        verify(b[0], times(1)).free();
+        assertThat(()->INSTANCE.transform(b, null), fails(LobFetchFailedException.class), () ->
+        verify(b[0], times(1)).free());
     }
 }

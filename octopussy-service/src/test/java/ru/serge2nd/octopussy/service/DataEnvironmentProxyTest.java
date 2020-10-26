@@ -17,15 +17,19 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-import static org.assertj.core.api.Assertions.catchThrowable;
-import static org.assertj.core.api.Assertions.catchThrowableOfType;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.hamcrest.CoreMatchers.allOf;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static ru.serge2nd.octopussy.service.Matchers.extractsTarget;
+import static ru.serge2nd.octopussy.service.Matchers.noTarget;
 import static org.mockito.Answers.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.*;
-import static org.springframework.test.util.ReflectionTestUtils.getField;
-import static org.springframework.test.util.ReflectionTestUtils.setField;
+import static ru.serge2nd.octopussy.service.Matchers.isClosed;
+import static ru.serge2nd.octopussy.service.Matchers.isOpen;
 import static ru.serge2nd.octopussy.support.DataEnvironmentDefinitionTest.DEF;
 import static ru.serge2nd.octopussy.support.DataEnvironmentDefinitionTest.ID;
+import static ru.serge2nd.test.matcher.AssertThat.assertThat;
+import static ru.serge2nd.test.matcher.CommonMatch.fails;
+import static ru.serge2nd.test.matcher.CommonMatch.illegalState;
 
 @ExtendWith(MockitoExtension.class)
 @TestInstance(Lifecycle.PER_CLASS)
@@ -37,169 +41,126 @@ public class DataEnvironmentProxyTest {
 
     @BeforeEach void setUp() { proxy = new DataEnvironmentProxy(DEF, serviceMock, factoryMock); }
 
-    @Test
-    void testGetTargetCheckOpen() {
-        // GIVEN
-        setField(proxy, "closed", true);
+    @Test void testGetTargetCheckOpen() {
+        proxy.closed = true;
 
-        // WHEN
-        Throwable error = catchThrowableOfType(proxy::getTarget, DataEnvironmentException.Closed.class);
-
-        /* THEN */ assertAll(() ->
-        assertNotNull(error, "target must die when closed"), () ->
-        assertNull(getField(proxy, "target"), "must not set target"), () ->
+        assertThat(
+        proxy::getTarget, fails(DataEnvironmentException.Closed.class),
+        proxy           , noTarget()                                  , () ->
         verifyNoInteractions(factoryMock));
     }
 
-    @Test
-    void testGetTargetSecondCheckOpen() {
-        // GIVEN
-        enableWorker(() -> setField(proxy, "closed", true), proxy);
+    @Test void testGetTargetSecondCheckOpen() {
+        enableWorker(() -> proxy.closed = true, proxy);
 
-        // WHEN
-        Throwable error = catchThrowableOfType(proxy::getTarget, DataEnvironmentException.Closed.class);
-
-        /* THEN */ assertAll(() ->
-        assertNotNull(error, "target must die when closed"), () ->
-        assertNull(getField(proxy, "target"), "must not set target"));
+        assertThat(
+        proxy::getTarget, fails(DataEnvironmentException.Closed.class),
+        proxy           , noTarget());
     }
 
-    @Test
-    void testGetTargetCheckProxyActive() {
-        // GIVEN
+    @Test void testGetTargetCheckProxyActive() {
         enableWorker(() -> {}, dataEnvMock);
 
-        // WHEN
-        Throwable error = catchThrowableOfType(proxy::getTarget, IllegalStateException.class);
-
-        /* THEN */ assertAll(() ->
-        assertNotNull(error, "inactive proxy cannot work"), () ->
-        assertNull(getField(proxy, "target"), "must not set target"), () ->
-        assertFalse(proxy.isClosed(), "closed unexpectedly"));
+        assertThat(
+        proxy::getTarget, illegalState(),
+        proxy           , allOf(isOpen(), noTarget()));
     }
 
-    @Test
-    void testGetTargetNotNull() {
-        // GIVEN
-        setField(proxy, "target", dataEnvMock);
-
-        // WHEN
-        DataEnvironment target = proxy.getTarget();
-
-        /* THEN */ assertAll(() ->
-        assertSame(dataEnvMock, target, "expected proxy target"), () ->
-        assertFalse(proxy.isClosed(), "closed unexpectedly"));
+    @Test void testGetTargetNotNull() {
+        proxy.target = dataEnvMock;
+        assertThat(proxy, extractsTarget(dataEnvMock), isOpen());
     }
 
-    @Test
-    void testGetTargetNull() {
-        // GIVEN
+    @Test void testGetTargetNull() {
         enableWorker(() -> {}, proxy);
         when(factoryMock.apply(same(proxy.getDefinition()))).thenReturn(dataEnvMock);
-
-        // WHEN
-        DataEnvironment target = proxy.getTarget();
-
-        /* THEN */ assertAll(() ->
-        assertSame(dataEnvMock, target, "expected proxy target"), () ->
-        assertFalse(proxy.isClosed(), "closed unexpectedly"));
+        assertThat(proxy, extractsTarget(dataEnvMock), isOpen());
     }
 
-    @Test
-    void testClose() {
+    @Test void testClose() {
         // GIVEN
         enableWorker(() -> {}, proxy);
-        setField(proxy, "target", dataEnvMock);
+        proxy.target = dataEnvMock;
 
         // WHEN
         proxy.close();
 
-        /* THEN */ assertAll(() ->
-        assertTrue(proxy.isClosed(), "not closed"), () ->
+        /* THEN */
+        assertThat(proxy, isClosed(), () ->
         verify(dataEnvMock, times(1)).close());
     }
 
-    @Test
-    void testCloseNullTarget() {
+    @Test void testCloseNullTarget() {
         // GIVEN
         enableWorker(() -> {}, proxy);
 
         // WHEN
         proxy.close();
 
-        /* THEN */ assertAll(() ->
-        assertTrue(proxy.isClosed(), "not closed"), () ->
-        assertNull(getField(proxy, "target"), "must not set target"));
+        // THEN
+        assertThat(proxy, isClosed(), noTarget());
     }
 
-    @Test
-    void testCloseCheckProxyActive() {
-        // GIVEN
+    @Test void testCloseCheckProxyActive() {
         enableWorker(() -> {}, dataEnvMock);
-        setField(proxy, "target", dataEnvMock);
+        proxy.target = dataEnvMock;
 
-        // WHEN
-        Throwable error = catchThrowableOfType(proxy::close, IllegalStateException.class);
-
-        /* THEN */ assertAll(() ->
-        assertNotNull(error, "inactive proxy cannot be closed"), () ->
-        assertFalse(proxy.isClosed(), "closed unexpectedly"), () ->
+        assertThat(
+        proxy::close, illegalState(),
+        proxy       , isOpen(), () ->
         verifyNoInteractions(dataEnvMock));
     }
 
-    @Test
-    void testAlreadyClosed() {
+    @Test void testAlreadyClosed() {
         // GIVEN
-        setField(proxy, "target", dataEnvMock);
-        setField(proxy, "closed", true);
+        proxy.target = dataEnvMock;
+        proxy.closed = true;
 
         // WHEN
         proxy.close();
 
-        /* THEN */ assertAll(() ->
-        assertTrue(proxy.isClosed(), "closing status was reset"), () ->
+        // THEN
+        assertThat(proxy, isClosed(), () ->
         verifyNoInteractions(dataEnvMock, factoryMock));
     }
 
-    @Test
-    void testClosedInMiddle() {
+    @Test void testClosedInMiddle() {
         // GIVEN
-        enableWorker(() -> setField(proxy, "closed", true), proxy);
-        setField(proxy, "target", dataEnvMock);
+        enableWorker(() -> proxy.closed = true, proxy);
+        proxy.target = dataEnvMock;
 
         // WHEN
         proxy.close();
 
-        /* THEN */ assertAll(() ->
-        assertTrue(proxy.isClosed(), "closing status was reset"), () ->
+        // THEN
+        assertThat(proxy, isClosed(), () ->
         verifyNoInteractions(dataEnvMock));
     }
 
-    @Test
-    void testUnwrapTarget() {
+    @Test void testUnwrapSelf() {
+        assertSame(proxy, proxy.unwrap(DataEnvironmentProxy.class), "expected proxy itself");
+    }
+
+    @Test void testUnwrapTarget() {
         // GIVEN
-        Integer expected = 9;
-        setField(proxy, "target", dataEnvMock);
+        Double expected = Math.PI;
+        proxy.target = dataEnvMock;
         when(dataEnvMock.unwrap(expected.getClass())).thenAnswer($->expected);
 
         // WHEN
-        Integer result = proxy.unwrap(expected.getClass());
+        Double result = proxy.unwrap(expected.getClass());
 
         // THEN
-        assertEquals(expected, result, "expected result from target");
+        assertSame(expected, result, "expected result from target");
     }
 
-    @Test
-    void testUnwrapDeadTarget() {
+    @Test void testUnwrapDeadTarget() {
         // GIVEN
         RuntimeException expected = new ArrayStoreException();
         mockWorker(i -> {throw expected;});
 
-        // WHEN
-        Throwable error = catchThrowable(() -> proxy.unwrap(null));
-
-        /* THEN */ assertAll(() ->
-        assertSame(expected, error, "expected error while getting target"), () ->
+        /* THEN */
+        assertThat(()->proxy.unwrap(null), fails(expected), () ->
         verifyNoInteractions(dataEnvMock));
     }
 
@@ -219,4 +180,5 @@ public class DataEnvironmentProxyTest {
 
     interface DataEnvService extends Supplier<DataEnvironmentService> {}
     interface DataEnvFactory extends Function<DataEnvironmentDefinition, DataEnvironment> {}
+
 }

@@ -20,7 +20,6 @@ import static java.util.Arrays.asList;
 import static java.util.Collections.singletonMap;
 import static org.hamcrest.CoreMatchers.endsWith;
 import static org.hamcrest.CoreMatchers.startsWith;
-import static org.hamcrest.CoreMatchers.*;
 import static org.mockito.Mockito.*;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
@@ -31,6 +30,7 @@ import static ru.serge2nd.octopussy.service.ex.DataEnvironmentException.errDataE
 import static ru.serge2nd.octopussy.service.ex.DataEnvironmentException.errDataEnvNotFound;
 import static ru.serge2nd.octopussy.support.DataEnvironmentDefinitionTest.DEF;
 import static ru.serge2nd.octopussy.support.DataEnvironmentDefinitionTest.ID;
+import static ru.serge2nd.test.matcher.CommonMatch.equalTo;
 
 @SpringBootTest(classes = TestWebConfig.class)
 @TestInstance(Lifecycle.PER_CLASS)
@@ -53,8 +53,8 @@ public class DataEnvironmentControllerTest implements BaseContextTest {
 
         // THEN
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.envId", is(ID)))
-        .andExpect(jsonPath("$.properties", is(DEF.getProperties())));
+        .andExpect(jsonPath("$.envId"     , equalTo(ID)))
+        .andExpect(jsonPath("$.properties", equalTo(DEF.getProperties())));
     }
 
     @Test void testGetOneNotFound() throws Exception {
@@ -67,10 +67,11 @@ public class DataEnvironmentControllerTest implements BaseContextTest {
 
         // THEN
         .andExpect(status().isNotFound())
-        .andExpect(jsonPath("$.url", endsWith(ONE_URL)))
-        .andExpect(jsonPath("$.status", startsWith(""+NOT_FOUND.value())))
-        .andExpect(jsonPath("$.code", is("DATA_ENV_NOT_FOUND")))
-        .andExpect(jsonPath("$.message", is(e.getMessage())));
+        .andExpect(jsonPath("$.url"    , endsWith(ONE_URL)))
+        .andExpect(jsonPath("$.method" , equalTo("GET")))
+        .andExpect(jsonPath("$.status" , startsWith(""+NOT_FOUND.value())))
+        .andExpect(jsonPath("$.code"   , equalTo("DATA_ENV_NOT_FOUND")))
+        .andExpect(jsonPath("$.message", equalTo(e.getMessage())));
     }
 
     @Test void testGetAll() throws Exception {
@@ -82,10 +83,10 @@ public class DataEnvironmentControllerTest implements BaseContextTest {
 
         // THEN
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.[0].envId", is(ID)))
-        .andExpect(jsonPath("$.[0].properties", is(DEF.getProperties())))
-        .andExpect(jsonPath("$.[1].envId", is(ID2)))
-        .andExpect(jsonPath("$.[1].properties", is(DEF2.getProperties())));
+        .andExpect(jsonPath("$.[0].envId"     , equalTo(ID)))
+        .andExpect(jsonPath("$.[0].properties", equalTo(DEF.getProperties())))
+        .andExpect(jsonPath("$.[1].envId"     , equalTo(ID2)))
+        .andExpect(jsonPath("$.[1].properties", equalTo(DEF2.getProperties())));
     }
 
     @Test void testCreate() throws Exception {
@@ -97,8 +98,8 @@ public class DataEnvironmentControllerTest implements BaseContextTest {
 
         // THEN
         .andExpect(status().isCreated())
-        .andExpect(jsonPath("$.envId", is(ID2)))
-        .andExpect(jsonPath("$.properties", is(DEF2.getProperties())));
+        .andExpect(jsonPath("$.envId"     , equalTo(ID2)))
+        .andExpect(jsonPath("$.properties", equalTo(DEF2.getProperties())));
     }
 
     @Test void testCreateExists() throws Exception {
@@ -111,10 +112,11 @@ public class DataEnvironmentControllerTest implements BaseContextTest {
 
         // THEN
         .andExpect(status().isBadRequest())
-        .andExpect(jsonPath("$.url", endsWith(ALL_URL)))
-        .andExpect(jsonPath("$.status", startsWith(""+BAD_REQUEST.value())))
-        .andExpect(jsonPath("$.code", is("DATA_ENV_EXISTS")))
-        .andExpect(jsonPath("$.message", is(e.getMessage())));
+        .andExpect(jsonPath("$.url"    , endsWith(ALL_URL)))
+        .andExpect(jsonPath("$.method" , equalTo("POST")))
+        .andExpect(jsonPath("$.status" , startsWith(""+BAD_REQUEST.value())))
+        .andExpect(jsonPath("$.code"   , equalTo("DATA_ENV_EXISTS")))
+        .andExpect(jsonPath("$.message", equalTo(e.getMessage())));
     }
 
     @Test void testDelete() throws Exception {
@@ -126,7 +128,5 @@ public class DataEnvironmentControllerTest implements BaseContextTest {
         .andExpect($->verify(serviceMock, times(1)).delete(ID));
     }
 
-    static String str(String name, Object... args) {
-        return Resources.asString(name, lookup().lookupClass(), args);
-    }
+    static String str(String name, Object... args) { return Resources.asString(name, lookup().lookupClass(), args); }
 }

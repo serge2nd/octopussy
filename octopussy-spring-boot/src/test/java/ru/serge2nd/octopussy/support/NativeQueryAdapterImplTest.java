@@ -70,9 +70,7 @@ class NativeQueryAdapterImplTest implements BaseContextTest {
                 .build());
     }
 
-    static String str(String name, Object... args) {
-        return Resources.asString(name, lookup().lookupClass(), args);
-    }
+    static String str(String name, Object... args) { return Resources.asString(name, lookup().lookupClass(), args); }
 
     static final List<Byte> SCALARS = asList((byte)5, (byte)7);
 

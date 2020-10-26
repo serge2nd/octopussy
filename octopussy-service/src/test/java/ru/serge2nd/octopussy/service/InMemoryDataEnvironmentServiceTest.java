@@ -1,11 +1,11 @@
 package ru.serge2nd.octopussy.service;
 
-import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
 import org.junit.jupiter.api.Test;
 import org.mockito.InOrder;
 import ru.serge2nd.octopussy.service.ex.DataEnvironmentException;
 import ru.serge2nd.octopussy.spi.DataEnvironment;
 import ru.serge2nd.octopussy.support.DataEnvironmentDefinition;
+import ru.serge2nd.test.util.ToRun;
 
 import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
@@ -21,13 +21,20 @@ import static java.util.Collections.singletonMap;
 import static java.util.concurrent.CompletableFuture.runAsync;
 import static java.util.concurrent.CompletableFuture.supplyAsync;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
-import static org.assertj.core.api.Assertions.catchThrowableOfType;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Answers.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.*;
 import static org.mockito.internal.util.collections.Sets.newSet;
 import static ru.serge2nd.stream.CommonCollectors.toList;
 import static ru.serge2nd.stream.util.Collecting.collect;
+import static ru.serge2nd.test.Asserting.assertEach;
+import static ru.serge2nd.test.matcher.AssertThat.assertThat;
+import static ru.serge2nd.test.matcher.CommonMatch.absent;
+import static ru.serge2nd.test.matcher.CommonMatch.equalTo;
+import static ru.serge2nd.test.matcher.CommonMatch.fails;
+import static ru.serge2nd.test.matcher.CommonMatch.presentedSame;
+import static ru.serge2nd.test.matcher.CommonMatch.sameAs;
 
 @SuppressWarnings("SynchronizationOnLocalVariableOrMethodParameter")
 class InMemoryDataEnvironmentServiceTest {
@@ -51,18 +58,14 @@ class InMemoryDataEnvironmentServiceTest {
         // WHEN
         DataEnvironment result = dataEnvService.get(ID2);
 
-        /* THEN */ assertAll(() ->
-        assertSame(EXISTING, result, "expected one from repository"), () ->
+        // THEN
+        assertThat(result, sameAs(EXISTING), () ->
         assertEquals(INITIAL, repository, "repository should remain unchanged"));
     }
 
     @Test
     void testGetNotFound() {
-        // WHEN
-        Throwable error = catchThrowableOfType(() -> dataEnvService.get(ID1), DataEnvironmentException.NotFound.class);
-
-        /* THEN */ assertAll(() ->
-        assertNotNull(error, "expected error due to absence"), () ->
+        assertThat(()->dataEnvService.get(ID1), fails(DataEnvironmentException.NotFound.class), () ->
         assertEquals(INITIAL, repository, "repository should remain unchanged"));
     }
 
@@ -74,14 +77,12 @@ class InMemoryDataEnvironmentServiceTest {
         // WHEN
         Optional<DataEnvironment> result = dataEnvService.find(ID1);
 
-        /* THEN */ assertAll(() ->
+        // THEN
+        assertThat(result, presentedSame(DATA_ENV), () ->
         assertEquals(new HashMap<String, DataEnvironment>() {{
             put(ID1, DATA_ENV);
             put(ID2, EXISTING);
-        }}, repository, "repository should keep all elements"), () ->
-        // AND
-        assertTrue(result.isPresent(), "should be presented"));
-        assertSame(DATA_ENV, result.get(), "expected one from repository");
+        }}, repository, "repository should keep all elements"));
     }
 
     @Test
@@ -89,8 +90,8 @@ class InMemoryDataEnvironmentServiceTest {
         // WHEN
         Optional<DataEnvironment> result = dataEnvService.find(ID1);
 
-        /* THEN */ assertAll(() ->
-        assertFalse(result.isPresent(), "should be empty if not found"), () ->
+        // THEN
+        assertThat(result, absent(), () ->
         assertEquals(INITIAL, repository, "repository should remain unchanged"));
     }
 
@@ -115,18 +116,14 @@ class InMemoryDataEnvironmentServiceTest {
         // WHEN
         String result = dataEnvService.doWith(ID2, action);
 
-        /* THEN */ assertAll(() ->
-        assertEquals(expected, result, "expected action result"), () ->
+        // THEN
+        assertThat(result, equalTo(expected), () ->
         assertEquals(INITIAL, repository, "repository should remain unchanged"));
     }
 
     @Test
     void testDoWithNotFound() {
-        // WHEN
-        Throwable error = catchThrowableOfType(() -> dataEnvService.doWith(ID1, $ -> $), DataEnvironmentException.NotFound.class);
-
-        // THEN
-        assertNotNull(error, "expected error due to absence");
+        assertThat(()->dataEnvService.doWith(ID1, $ -> $), fails(DataEnvironmentException.NotFound.class));
     }
 
     @Test
@@ -138,9 +135,8 @@ class InMemoryDataEnvironmentServiceTest {
         // WHEN
         DataEnvironment created = dataEnvService.create(DATA_ENV);
 
-        /* THEN */ assertAll(() ->
-        assertSame(expected, created, "expected builder result"), () ->
-        // AND
+        // THEN
+        assertThat(created, sameAs(expected), () ->
         assertEquals(new HashMap<String, DataEnvironment>() {{
             put(ID1, created);
             put(ID2, EXISTING);
@@ -149,11 +145,7 @@ class InMemoryDataEnvironmentServiceTest {
 
     @Test
     void testCreateAlreadyExists() {
-        // WHEN
-        Throwable error = catchThrowableOfType(() -> dataEnvService.create(dataEnv(ID2)), DataEnvironmentException.Exists.class);
-
-        /* THEN */ assertAll(() ->
-        assertNotNull(error, "expected already exists"), () ->
+        assertThat(()->dataEnvService.create(dataEnv(ID2)), fails(DataEnvironmentException.Exists.class), () ->
         assertEquals(INITIAL, repository, "repository should remain unchanged"));
     }
 
@@ -166,7 +158,7 @@ class InMemoryDataEnvironmentServiceTest {
         dataEnvService.delete(ID2);
 
         // THEN
-        InOrder inOrder = inOrder(preClose, EXISTING); assertAll(() ->
+        InOrder inOrder = inOrder(preClose, EXISTING); assertEach(() ->
         assertEquals(singletonMap(ID1, DATA_ENV), repository, "expected one element left"), () ->
         inOrder.verify(preClose, times(1)).apply(same(EXISTING)), () ->
         inOrder.verify(EXISTING, times(1)).close());
@@ -174,29 +166,20 @@ class InMemoryDataEnvironmentServiceTest {
 
     @Test
     void testDeleteNotFound() {
-        // WHEN
-        Throwable error = catchThrowableOfType(() -> dataEnvService.delete(ID1), DataEnvironmentException.NotFound.class);
-
-        /* THEN */ assertAll(() ->
-        assertNotNull(error, "expected not found"), () ->
+        assertThat(()->dataEnvService.delete(ID1), fails(DataEnvironmentException.NotFound.class), () ->
         assertEquals(INITIAL, repository, "repository should remain unchanged"));
     }
 
     @Test
     void testLockOnCreate() {
-        // GIVEN
         CountDownLatch freeLocks = new CountDownLatch(1);
         doAnswer(i -> waitOn(dataEnvService, freeLocks)).when(prototypeMock).toBuilder();
         runAsyncAndDelayOn(dataEnvService, () -> dataEnvService.create(DATA_ENV), freeLocks);
 
-        // WHEN
-        Throwable error = catchTimeoutAndRelease(() ->
-                supplyAsync(() -> dataEnvService
-                .doWith(ID1, e -> e))
-                .get(TIMEOUT, MILLISECONDS), dataEnvService);
-
-        // THEN
-        assertNotNull(error, "expected deadlock");
+        assertTimeoutAndRelease(() ->
+            supplyAsync(() -> dataEnvService
+            .doWith(ID1, e -> e))
+            .get(TIMEOUT, MILLISECONDS), dataEnvService);
     }
 
     @Test
@@ -205,37 +188,28 @@ class InMemoryDataEnvironmentServiceTest {
         runAsyncAndDelayOn(dataEnvService, () ->
                 dataEnvService.doWith(ID2, $ -> waitOn(dataEnvService, freeLocks)), freeLocks);
 
-        // WHEN
-        Throwable error = catchTimeoutAndRelease(() ->
-                runAsync(() -> dataEnvService
-                .delete(ID2))
-                .get(TIMEOUT, MILLISECONDS), dataEnvService);
-
-        // THEN
-        assertNotNull(error, "expected deadlock");
+        assertTimeoutAndRelease(() ->
+            runAsync(() -> dataEnvService
+            .delete(ID2))
+            .get(TIMEOUT, MILLISECONDS), dataEnvService);
     }
 
     @Test
     void testLockOnDelete() {
-        // GIVEN
         CountDownLatch freeLocks = new CountDownLatch(1);
         doAnswer(i -> waitOn(dataEnvService, freeLocks)).when(EXISTING).close();
         runAsyncAndDelayOn(dataEnvService, () -> dataEnvService.delete(ID2), freeLocks);
 
-        // WHEN
-        Throwable error = catchTimeoutAndRelease(() ->
-                supplyAsync(() -> dataEnvService
-                .create(EXISTING))
-                .get(TIMEOUT, MILLISECONDS), dataEnvService);
-
-        // THEN
-        assertNotNull(error, "expected deadlock");
+        assertTimeoutAndRelease(() ->
+            supplyAsync(() -> dataEnvService
+            .create(EXISTING))
+            .get(TIMEOUT, MILLISECONDS), dataEnvService);
     }
 
     static void runAsyncAndDelayOn(Object lock, Runnable task, CountDownLatch start) {
         runAsync(task); try {
-            start.await(TIMEOUT, MILLISECONDS);
-            synchronized (lock) { sleep(100); }
+            start.await(10*TIMEOUT, MILLISECONDS);
+            synchronized (lock) { sleep(1); }
         } catch (InterruptedException e) {
             fail("unexpected interruption", e);
         }
@@ -250,13 +224,12 @@ class InMemoryDataEnvironmentServiceTest {
         }} return null;
     }
 
-    static Throwable catchTimeoutAndRelease(ThrowingCallable c, Object lock) {
-        Throwable error; try {
-            error = catchThrowableOfType(c, TimeoutException.class);
+    static void assertTimeoutAndRelease(ToRun e, Object lock) {
+        try {
+            assertThat(e, fails(TimeoutException.class));
         } finally {
             synchronized (lock) { lock.notifyAll(); }
         }
-        return error;
     }
 
     static DataEnvironment dataEnv(String envId) {

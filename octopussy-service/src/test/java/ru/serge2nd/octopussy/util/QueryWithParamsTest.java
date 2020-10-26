@@ -9,7 +9,11 @@ import java.util.Map;
 
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonMap;
-import static org.junit.jupiter.api.Assertions.*;
+import static ru.serge2nd.test.matcher.AssertThat.assertThat;
+import static ru.serge2nd.test.matcher.CommonMatch.equalTo;
+import static ru.serge2nd.test.matcher.CommonMatch.fails;
+import static ru.serge2nd.test.matcher.CommonMatch.illegalArgument;
+import static ru.serge2nd.test.matcher.CommonMatch.sameAs;
 
 @TestInstance(Lifecycle.PER_CLASS)
 class QueryWithParamsTest {
@@ -20,20 +24,20 @@ class QueryWithParamsTest {
         // WHEN
         QueryWithParams q = new QueryWithParams(Q, PARAMS);
 
-        /* THEN */ assertAll(() ->
-        assertSame(Q, q.getQuery(), "expected same query"), () ->
-        assertEquals(PARAMS, q.getParams(), "expected same params"), () ->
-        assertThrows(UnsupportedOperationException.class, ()->q.getParams().clear(), "expected unmodifiable params"));
+        /* THEN */ assertThat(
+        q.getQuery()             , sameAs(Q),
+        q.getParams()            , equalTo(PARAMS),
+        ()->q.getParams().clear(), fails(UnsupportedOperationException.class));
     }
 
     @Test void testNullParams() {
         // WHEN
         QueryWithParams q = new QueryWithParams(Q, null);
 
-        /* THEN */ assertAll(() ->
-        assertSame(Q, q.getQuery(), "expected same query"), () ->
-        assertSame(emptyMap(), q.getParams(), "expected empty map"));
+        /* THEN */ assertThat(
+        q.getQuery() , sameAs(Q),
+        q.getParams(), sameAs(emptyMap()));
     }
 
-    @Test void testNullQuery() { assertThrows(IllegalArgumentException.class, ()->new QueryWithParams(null, PARAMS)); }
+    @Test void testNullQuery() { assertThat(()->new QueryWithParams(null, PARAMS), illegalArgument()); }
 }

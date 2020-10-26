@@ -19,7 +19,10 @@ import java.util.Map;
 import java.util.function.Function;
 
 import static java.util.Arrays.copyOfRange;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Answers.RETURNS_DEEP_STUBS;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.same;
@@ -31,6 +34,9 @@ import static ru.serge2nd.octopussy.App.*;
 import static ru.serge2nd.octopussy.support.DataEnvironmentDefinitionTest.ID;
 import static ru.serge2nd.stream.MapCollectors.toMap;
 import static ru.serge2nd.stream.util.Collecting.collect;
+import static ru.serge2nd.test.Asserting.assertEach;
+import static ru.serge2nd.test.matcher.AssertThat.assertThat;
+import static ru.serge2nd.test.matcher.CommonMatch.sameAs;
 
 @TestInstance(Lifecycle.PER_CLASS)
 class DataEnvConfigNoCtxTest {
@@ -66,10 +72,10 @@ class DataEnvConfigNoCtxTest {
         // WHEN
         JpaEnvironment result = instance.newJpaEnvironment(DEF);
 
-        /* THEN */ assertAll(() ->
-        assertSame(DEF, result.getDefinition(), "data environment definition does not match"), () ->
-        assertSame(ds, result.getDataSource(), "data source does not match"), () ->
-        assertSame(emf, result.getEntityManagerFactory(), "entity manager factory does not match"));
+        /* THEN */ assertThat(
+        result.getDefinition()          , sameAs(DEF),
+        result.getDataSource()          , sameAs(ds),
+        result.getEntityManagerFactory(), sameAs(emf));
     }
 
     @Test
@@ -83,20 +89,21 @@ class DataEnvConfigNoCtxTest {
         // WHEN
         NativeQueryAdapter result = instance.getQueryAdapter(ID);
 
-        /* THEN */ assertAll("Check proxy interfaces", () ->
+        /* THEN */ assertEach("Check proxy interfaces", () ->
         assertTrue(isCglibProxy(result), "expected a CGLIB proxy"), () ->
         assertTrue(result instanceof TransactionalProxy, "expected a transactional proxy"), () ->
         assertTrue(result instanceof Advised, "expected an advised"));
         // AND
         Advised advised = (Advised)result;
-        assertAll("Check proxy contents", () ->
+        assertEach("Check proxy contents", () ->
         assertFalse(advised.isProxyTargetClass(), "must not proxy target class"), () ->
         assertTrue(advised.isFrozen(), "must be frozen"), () ->
         assertSame(NativeQueryAdapterImpl.class, ((Advised)result).getTargetSource().getTargetClass(), "wrong target"));
         // AND
-        Object target = advised.getTargetSource().getTarget();
-        assertAll("Check target", () ->
+        Object target = advised.getTargetSource().getTarget(); Object[] th = new Object[1];
+        assertEach("Check target", () ->
         assertNotNull(getField(target, "jpaEnv"), "no JPA environment"), () ->
-        assertNotNull(getField(target, "transformer"), "wrong result transformer"));
+        assertNotNull(th[0] = getField(target, "transformer"), "no result transformer"), () ->
+        assertSame(ToListResultTransformer.INSTANCE, getField(th[0], "delegate"), "wrong result transformer"));
     }
 }

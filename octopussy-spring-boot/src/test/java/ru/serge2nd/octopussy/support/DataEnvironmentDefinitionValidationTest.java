@@ -10,17 +10,20 @@ import org.springframework.boot.test.autoconfigure.json.JsonTest;
 import org.springframework.boot.test.json.JacksonTester;
 import org.springframework.context.annotation.Import;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
+import ru.serge2nd.test.util.Resources;
 
 import javax.validation.Validator;
 import java.io.IOException;
 import java.util.stream.Stream;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static java.lang.invoke.MethodHandles.lookup;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static ru.serge2nd.octopussy.support.DataEnvironmentDefinition.builder;
 import static ru.serge2nd.octopussy.support.DataEnvironmentDefinitionTest.DEF;
 import static ru.serge2nd.octopussy.support.DataEnvironmentDefinitionTest.ID;
+import static ru.serge2nd.test.matcher.AssertThat.assertThat;
+import static ru.serge2nd.test.util.CustomMatchers.equalToJson;
 
 @JsonTest @Import(LocalValidatorFactoryBean.class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -74,6 +77,10 @@ class DataEnvironmentDefinitionValidationTest {
 
     @Test
     void testWrite() throws IOException {
-        assertThat(tester.write(DEF)).isEqualToJson(J);
+        assertThat(json(DEF), equalToJson(str(J)));
     }
+
+    String json(DataEnvironmentDefinition d) throws IOException { return tester.write(d).getJson(); }
+
+    static String str(String name, Object... args) { return Resources.asString(name, lookup().lookupClass(), args); }
 }

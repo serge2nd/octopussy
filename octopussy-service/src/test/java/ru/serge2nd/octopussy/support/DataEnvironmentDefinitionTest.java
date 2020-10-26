@@ -6,8 +6,12 @@ import org.junit.jupiter.api.TestInstance.Lifecycle;
 import ru.serge2nd.octopussy.spi.DataEnvironment;
 import ru.serge2nd.octopussy.spi.JpaEnvironment;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static ru.serge2nd.octopussy.service.Matchers.isClosed;
 import static ru.serge2nd.octopussy.support.DataEnvironmentDefinition.builder;
+import static ru.serge2nd.test.matcher.AssertThat.assertThat;
+import static ru.serge2nd.test.matcher.CommonMatch.illegalArgument;
+import static ru.serge2nd.test.matcher.CommonMatch.sameAs;
 
 @TestInstance(Lifecycle.PER_CLASS)
 public class DataEnvironmentDefinitionTest {
@@ -18,13 +22,13 @@ public class DataEnvironmentDefinitionTest {
             .property("login", "serge")
             .build();
 
-    @Test void testGetDefinition() { assertSame(DEF, DEF.getDefinition(), "expected this definition"); }
-    @Test void testIsClosed()      { assertTrue(DEF.isClosed(), "not always closed"); }
+    @Test void testGetDefinition() { assertThat(DEF.getDefinition(), sameAs(DEF)); }
+    @Test void testIsClosed()      { assertThat(DEF, isClosed()); }
     @Test void testClose()         { assertDoesNotThrow(DEF::close, "noisy close()"); }
 
-    @Test void testUnwrap() { assertAll(() ->
-        assertSame(DEF, DEF.unwrap(DataEnvironmentDefinition.class), "must unwrap itself"), () ->
-        assertSame(DEF, DEF.unwrap(DataEnvironment.class), "must unwrap " + DataEnvironment.class.getName()), () ->
-        assertThrows(IllegalArgumentException.class, ()->DEF.unwrap(JpaEnvironment.class), "expected illegal unwrap"));
+    @Test void testUnwrap() { assertThat(
+        DEF.unwrap(DataEnvironmentDefinition.class), sameAs(DEF),
+        DEF.unwrap(DataEnvironment.class)          , sameAs(DEF),
+        ()->DEF.unwrap(JpaEnvironment.class)       , illegalArgument());
     }
 }

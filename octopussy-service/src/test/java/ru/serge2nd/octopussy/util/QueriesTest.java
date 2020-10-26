@@ -3,47 +3,38 @@ package ru.serge2nd.octopussy.util;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
-import org.junit.jupiter.api.function.Executable;
 
 import java.util.List;
-import java.util.stream.Stream;
 
 import static java.util.Arrays.asList;
 import static java.util.Arrays.stream;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonMap;
 import static java.util.stream.Collectors.toList;
-import static org.junit.jupiter.api.Assertions.*;
-import static ru.serge2nd.octopussy.util.Queries.*;
+import static org.hamcrest.CoreMatchers.instanceOf;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static ru.serge2nd.octopussy.util.Queries.EMPTY;
+import static ru.serge2nd.octopussy.util.Queries.mapToQueries;
+import static ru.serge2nd.octopussy.util.Queries.queries;
 import static ru.serge2nd.stream.util.Collecting.collect;
+import static ru.serge2nd.test.matcher.AssertForMany.assertForMany;
+import static ru.serge2nd.test.matcher.AssertThat.assertThat;
+import static ru.serge2nd.test.matcher.CommonMatch.equalTo;
+import static ru.serge2nd.test.matcher.CommonMatch.illegalArgument;
+import static ru.serge2nd.test.matcher.CommonMatch.sameAs;
 
 @TestInstance(Lifecycle.PER_CLASS)
 class QueriesTest {
     static final QueryWithParams[] QS = {new QueryWithParams("abc", null), new QueryWithParams("xyz", singletonMap("nine", 9))};
     static final List<QueryWithParams> QL = asList(QS);
 
-    @Test void testQueriesOfArray() {
-        // WHEN
-        Queries qs = queries(QS);
+    @Test void testQueriesOfArray() { assertThat(queries(QS), instanceOf(UnmodifiableArrayQueries.class), equalTo(QL)); }
+    @Test void testNoQueries()      { assertThat(queries(), sameAs(EMPTY)); }
 
-        /* THEN */ assertAll(() ->
-        assertTrue(qs instanceof UnmodifiableArrayQueries, "expected unmodifiable queries"), () ->
-        assertEquals(QL, qs, "expected same queries"));
-    }
-    @Test void testNoQueries() { assertSame(EMPTY, queries()); }
-
-    @Test
-    void testQueriesOfList() {
-        // WHEN
-        Queries qs = queries(QL);
-
-        /* THEN */ assertAll(() ->
-        assertTrue(qs instanceof UnmodifiableQueries, "expected unmodifiable queries"), () ->
-        assertEquals(QL, qs, "expected same queries"));
-    }
-    @Test void testQueriesOfEmptyList()                { assertSame(EMPTY, queries(emptyList())); }
-    @Test void testQueriesOfUnmodifiableQueries()      { Queries qs = queries(QL); assertSame(qs, queries(qs)); }
-    @Test void testQueriesOfUnmodifiableArrayQueries() { Queries qs = queries(QS); assertSame(qs, queries(qs)); }
+    @Test void testQueriesOfList()                     { assertThat(queries(QL), instanceOf(UnmodifiableQueries.class), equalTo(QL)); }
+    @Test void testQueriesOfEmptyList()                { assertThat(queries(emptyList()), sameAs(EMPTY)); }
+    @Test void testQueriesOfUnmodifiableQueries()      { Queries qs = queries(QL); assertThat(queries(qs), sameAs(qs)); }
+    @Test void testQueriesOfUnmodifiableArrayQueries() { Queries qs = queries(QS); assertThat(queries(qs), sameAs(qs)); }
 
     @Test void testMapToQueries() {
         String[] strs = {"s0", "s1"};
@@ -54,10 +45,10 @@ class QueriesTest {
     }
 
     @SuppressWarnings("ConstantConditions")
-    @Test void testNullArgs() { assertAll(Stream.<Executable>of(
+    @Test void testNullArgs() {
+        assertForMany(illegalArgument(),
         () -> queries((QueryWithParams[])null),
         () -> queries((List<QueryWithParams>)null),
-        () -> mapToQueries(null, 0)
-        ).map(e -> ()->assertThrows(IllegalArgumentException.class, e)));
+        () -> mapToQueries(null, 0));
     }
 }
