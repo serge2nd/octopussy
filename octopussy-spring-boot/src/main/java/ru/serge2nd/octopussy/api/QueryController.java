@@ -22,14 +22,14 @@ public class QueryController {
 
     @PostMapping(path = "query", consumes = APPLICATION_JSON_VALUE)
     List<?> executeQuery(@NotBlank @PathVariable String envId,
-                                @Valid    @RequestBody  QueriesRq rq) {
+                         @Valid    @RequestBody  QueriesRq rq) {
         QueryWithParams q = rq.toQueries().get(0);
         return queryAdapter(envId).execute(q.getQuery(), q.getParams());
     }
 
     @PostMapping(path = "update", consumes = APPLICATION_JSON_VALUE)
     int[] executeUpdate(@NotBlank @PathVariable String envId,
-                               @Valid    @RequestBody  QueriesRq rq) {
+                        @Valid    @RequestBody  QueriesRq rq) {
         return queryAdapter(envId).executeUpdate(rq.toQueries());
     }
 

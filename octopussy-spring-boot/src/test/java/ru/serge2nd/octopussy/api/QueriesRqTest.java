@@ -12,6 +12,7 @@ import org.springframework.boot.test.json.JacksonTester;
 import org.springframework.context.annotation.Import;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 import ru.serge2nd.octopussy.BaseContextTest;
+import ru.serge2nd.test.util.Resources;
 
 import javax.validation.Validator;
 import java.io.IOException;
@@ -19,6 +20,7 @@ import java.io.StringReader;
 import java.util.stream.Stream;
 
 import static java.lang.String.format;
+import static java.lang.invoke.MethodHandles.lookup;
 import static java.util.Arrays.asList;
 import static java.util.Arrays.stream;
 import static java.util.Collections.emptyMap;
@@ -26,16 +28,17 @@ import static java.util.Collections.singletonMap;
 import static java.util.stream.Collectors.toList;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
-import static ru.serge2nd.octopussy.api.DataEnvironmentControllerTest.str;
-import static ru.serge2nd.octopussy.api.QueryControllerTest.*;
 import static ru.serge2nd.test.matcher.AssertThat.assertThat;
 import static ru.serge2nd.test.util.CustomMatchers.equalToJson;
 
 @JsonTest @Import(LocalValidatorFactoryBean.class)
 @TestInstance(Lifecycle.PER_CLASS)
 class QueriesRqTest implements BaseContextTest {
-    static final Integer I = QueryControllerTest.K;
+    static final String J = "query_rq_tmpl.json";
+    static final String Q = "not executed";
+    static final Integer I = Integer.MAX_VALUE;
     static final String K = I.toString();
+    static final Double V = 0.5;
     static final QueryRq RQ = query(Q, K, V);
     static final QueriesRq RQS = queryRqs(format("%f", V), I, RQ);
 
@@ -107,4 +110,6 @@ class QueriesRqTest implements BaseContextTest {
     static QueryRq query(String q, String k, Object v) { return new QueryRq(q, singletonMap(k, v)); }
 
     String json(QueriesRq rq) throws IOException { return tester.write(rq).getJson(); }
+
+    static String str(String name, Object... args) { return Resources.asString(name, lookup().lookupClass(), args); }
 }
