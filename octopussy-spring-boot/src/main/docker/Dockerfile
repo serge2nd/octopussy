@@ -1,4 +1,4 @@
-ARG JRE_IMAGE=adoptopenjdk/openjdk11:jre-11.0.8_10-alpine
+ARG JRE_IMAGE=adoptopenjdk/openjdk11:alpine-jre
 FROM $JRE_IMAGE
 ENV EXT_DIR=/ext
 
