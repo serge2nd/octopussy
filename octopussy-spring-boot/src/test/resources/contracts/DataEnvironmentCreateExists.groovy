@@ -20,8 +20,12 @@ Contract.make {
             url    : regex('.*/dataEnvironments'),
             method : POST,
             status : "${BAD_REQUEST.value()} ${BAD_REQUEST.reasonPhrase}" as String,
-            code   : 'DATA_ENV_EXISTS',
-            message: anyNonBlankString()
+            code   : 'DATA_ENV_EXISTS:db3000',
+            messages: ['err0']
         )
+        bodyMatchers {
+            jsonPath('$.messages', byCommand($/assertThat((Iterable)$$it).as("$.messages")
+                .allElementsMatch(".*\\S+.*")/$))
+        }
     }
 }

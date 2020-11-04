@@ -14,8 +14,12 @@ Contract.make {
             url    : regex('.*/dataEnvironments/db3000'),
             method : GET,
             status : "${NOT_FOUND.value()} ${NOT_FOUND.reasonPhrase}" as String,
-            code   : 'DATA_ENV_NOT_FOUND',
-            message: anyNonBlankString()
+            code   : 'DATA_ENV_NOT_FOUND:db3000',
+            messages: ['err0']
         )
+        bodyMatchers {
+            jsonPath('$.messages', byCommand($/assertThat((Iterable)$$it).as("$.messages")
+                .allElementsMatch(".*\\S+.*")/$))
+        }
     }
 }

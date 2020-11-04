@@ -16,8 +16,12 @@ Contract.make {
             url    : regex('.*/dataEnvironments/db1000/update'),
             method : POST,
             status : "${BAD_REQUEST.value()} ${BAD_REQUEST.reasonPhrase}" as String,
-            code   : 'NOT_VALID',
-            message: anyNonBlankString()
+            code   : 'NOT_VALID:queries',
+            messages: ['err0']
         )
+        bodyMatchers {
+            jsonPath('$.messages', byCommand($/assertThat((Iterable)$$it).as("$.messages")
+                .allElementsMatch(".*\\S+.*")/$))
+        }
     }
 }
