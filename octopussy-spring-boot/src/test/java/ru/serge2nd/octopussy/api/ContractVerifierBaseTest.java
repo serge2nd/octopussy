@@ -53,14 +53,15 @@ abstract class ContractVerifierBaseTest implements BaseContextTest {
     void beforeAll() {
         RestAssuredMockMvc.mockMvc(mockMvc);
 
-        when(serviceMock.getAll()).thenReturn(asList(DEF, DEF2));
-        when(serviceMock.get(eq(ID))).thenReturn(DEF);
-        when(serviceMock.get(eq(ID2))).thenThrow(errDataEnvNotFound(ID2));
-        when(serviceMock.create(eq(DEF))).thenReturn(DEF2);
+        when(serviceMock.getAll())        .thenReturn(asList(DEF, DEF2));
+        when(serviceMock.get(eq(ID)))     .thenReturn(DEF);
+        when(serviceMock.get(eq(ID2)))    .thenThrow(errDataEnvNotFound(ID2));
+        when(serviceMock.create(eq(DEF))) .thenReturn(DEF2);
         when(serviceMock.create(eq(DEF2))).thenThrow(errDataEnvExists(ID2));
         doThrow(errDataEnvNotFound(ID2)).when(serviceMock).delete(eq(ID2));
 
-        when(providerMock.getQueryAdapter(ID).execute(Q, PARAM)).thenReturn((List)RS);
+        when(providerMock.getQueryAdapter(ID).execute(Q, PARAM))
+                .thenReturn((List)RS);
         when(providerMock.getQueryAdapter(ID).executeUpdate(queries(new QueryWithParams(Q, PARAM))))
                 .thenReturn(RS.stream().mapToInt(i -> i).toArray());
     }

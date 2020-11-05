@@ -1,22 +1,19 @@
 ---
 name: JDK11
-env:
-  GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
-
 on:
-  push:
-    branches: [ develop ]
-  pull_request:
-    branches: [ develop ]
+  push:         {branches: [ develop ]}
+  pull_request: {branches: [ develop ]}
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    env: {GITHUB_TOKEN: '${{ secrets.GH_TOKEN }}'}
+
     steps:
     - uses: actions/checkout@v2
     - uses: actions/setup-java@v1
-      with:
-        java-version: 11
+      with: {java-version: 11}
+
     - run: cp -f .ci.settings.xml $HOME/.m2/settings.xml
-    - run: ./mvnw -B package
+    - run: ./mvnw -B install
 ...

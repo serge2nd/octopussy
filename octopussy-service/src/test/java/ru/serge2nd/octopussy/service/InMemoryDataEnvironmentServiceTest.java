@@ -42,15 +42,14 @@ class InMemoryDataEnvironmentServiceTest {
     static final String ID2 = "7010";
     static final int TIMEOUT = 300;
 
-    final DataEnvironment DATA_ENV = dataEnv(ID1);
-    final DataEnvironment EXISTING = spy(dataEnv(ID2));
-    final Map<String, DataEnvironment> INITIAL = singletonMap(ID2, EXISTING);
+    final DataEnvironment              DATA_ENV = dataEnv(ID1);
+    final DataEnvironment              EXISTING = spy(dataEnv(ID2));
+    final Map<String, DataEnvironment> INITIAL  = singletonMap(ID2, EXISTING);
 
     final Map<String, DataEnvironment> repository = new ConcurrentHashMap<>(INITIAL);
-    @SuppressWarnings("unchecked")
-    final UnaryOperator<DataEnvironment> preClose = mock(UnaryOperator.class, i -> i.getArgument(0));
+    final UnaryOperator<DataEnvironment> preClose = mock(OP_CLS, i -> i.getArgument(0));
 
-    final DataEnvironment prototypeMock = mock(DataEnvironment.class, RETURNS_DEEP_STUBS);
+    final DataEnvironment          prototypeMock  = mock(DataEnvironment.class, RETURNS_DEEP_STUBS);
     InMemoryDataEnvironmentService dataEnvService = new InMemoryDataEnvironmentService(repository, prototypeMock, preClose);
 
     @Test
@@ -246,4 +245,7 @@ class InMemoryDataEnvironmentServiceTest {
             super(definition, dataSource, entityManagerFactory);
         }
     }
+
+    @SuppressWarnings("unchecked,rawtypes")
+    static final Class<UnaryOperator<DataEnvironment>> OP_CLS = (Class)UnaryOperator.class;
 }

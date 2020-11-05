@@ -8,7 +8,7 @@ import java.util.*;
 import static java.lang.String.format;
 import static java.lang.String.join;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
-import static ru.serge2nd.stream.util.Collecting.accumulate;
+import static ru.serge2nd.stream.util.Collecting.collect;
 
 public class CustomAssertions {
 
@@ -119,10 +119,10 @@ public class CustomAssertions {
         }
 
         StrictlyEqualsAssertion addAssertionError(String msg) {
-            errors.add(accumulate(path, new StringBuilder(),
-                    (sb, i) -> sb.append(format("[%d]", i)))
-                    .append(": ").append(msg)
-                    .toString());
+            errors.add(collect(path, new StringBuilder(),
+                (sb, i) -> sb.append("[").append(i).append("]"))
+                .append(": ").append(msg)
+                .toString());
             return this;
         }
     }

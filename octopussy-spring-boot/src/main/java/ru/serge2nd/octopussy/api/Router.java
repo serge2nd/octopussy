@@ -79,16 +79,16 @@ public class Router {
         //endregion
 
         //region Error handling
+        .onError(DataEnvironmentException.NotFound.class,
+                (e, rq) -> handle(rq, NOT_FOUND, e))
+
+        .onError(HttpMediaTypeNotSupportedException.class,
+                (e, rq) -> handle(rq, UNSUPPORTED_MEDIA_TYPE, e))
+
         .onError(e -> e instanceof DataEnvironmentException ||
                       e instanceof ServerWebInputException ||
                       e instanceof HttpMessageNotReadableException,
         (e, rq) -> handle(rq, BAD_REQUEST, e))
-
-        .onError(DataEnvironmentException.NotFound.class,
-        (e, rq) -> handle(rq, NOT_FOUND, e))
-
-        .onError(HttpMediaTypeNotSupportedException.class,
-        (e, rq) -> handle(rq, UNSUPPORTED_MEDIA_TYPE, e))
         //endregion
 
         .build();

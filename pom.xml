@@ -58,16 +58,16 @@
             </dependency>
 
             <dependency>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-dependencies</artifactId>
-                <version>${spring-boot.version}</version>
+                <groupId>org.springframework.cloud</groupId>
+                <artifactId>spring-cloud-dependencies</artifactId>
+                <version>${spring-cloud.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
             <dependency>
-                <groupId>org.springframework.cloud</groupId>
-                <artifactId>spring-cloud-dependencies</artifactId>
-                <version>${spring-cloud.version}</version>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-dependencies</artifactId>
+                <version>${spring-boot.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
@@ -128,15 +128,15 @@
 
         <serge2nd-crafts.version>0.9.0-SNAPSHOT</serge2nd-crafts.version>
         <test-guns.version>0.9.0-SNAPSHOT</test-guns.version>
-        <lombok.version>1.18.12</lombok.version>
-        <spring-boot.version>2.3.4.RELEASE</spring-boot.version>
-        <spring-cloud.version>Hoxton.SR8</spring-cloud.version>
-        <spring-cloud-contract.version>2.2.4.RELEASE</spring-cloud-contract.version>
-        <hibernate.version>5.4.21.Final</hibernate.version>
-        <hibernate-validator.version>6.1.5.Final</hibernate-validator.version>
+        <lombok.version>1.18.16</lombok.version>
+        <spring-boot.version>2.4.0</spring-boot.version>
+        <spring-cloud.version>Hoxton.SR9</spring-cloud.version>
+        <spring-cloud-contract.version>2.2.5.RELEASE</spring-cloud-contract.version>
+        <hibernate.version>5.4.25.Final</hibernate.version>
+        <hibernate-validator.version>6.1.6.Final</hibernate-validator.version>
 
-        <junit-jupiter.version>5.6.2</junit-jupiter.version>
-        <mockito.version>3.5.5</mockito.version>
+        <junit-jupiter.version>5.7.0</junit-jupiter.version>
+        <mockito.version>3.6.28</mockito.version>
 
         <compiler-plugin.version>3.8.1</compiler-plugin.version>
         <surefire-plugin.version>2.22.2</surefire-plugin.version>

@@ -4,23 +4,21 @@ import org.hamcrest.Matcher;
 import org.skyscreamer.jsonassert.JSONCompare;
 import org.skyscreamer.jsonassert.JSONCompareMode;
 import org.skyscreamer.jsonassert.JSONCompareResult;
-import ru.serge2nd.test.matcher.MatcherOf;
+import ru.serge2nd.test.matcher.builder.MatcherBuilder;
 
 import static org.skyscreamer.jsonassert.JSONCompareMode.LENIENT;
 import static ru.serge2nd.test.Cfg.EOL;
-import static ru.serge2nd.test.matcher.MatchAssist.descriptor;
-import static ru.serge2nd.test.matcher.MatchAssist.valueDescriptor;
 import static ru.serge2nd.test.util.ToRun.throwSneaky;
 
 public class CustomMatchers {
 
-    @SuppressWarnings("ConstantConditions")
     public static Matcher<String> equalToJson(String expected) {
-        ThreadLocal<JSONCompareResult> result = new ThreadLocal<>();
-        return new MatcherOf<String>(
-                descriptor(()->"JSONs are equal"+EOL),
-                actual -> set(result, compareJson(expected, actual, LENIENT)).passed(),
-                valueDescriptor($->EOL+"mismatch: "+result.get().getMessage())) {};
+        return new MatcherBuilder<String>(){}
+                .then(json -> compareJson(expected, json, LENIENT))
+                .matchIf(JSONCompareResult::passed)
+                .append("JSONs are equal" + EOL)
+                .alert(r -> EOL + "mismatch: " + r.getMessage())
+                .build();
     }
 
     static JSONCompareResult compareJson(String expected, String actual, JSONCompareMode mode) {
@@ -30,6 +28,4 @@ public class CustomMatchers {
             throwSneaky(e); return null;
         }
     }
-
-    static <T> T set(ThreadLocal<? super T> c, T e) { c.set(e); return e; }
 }

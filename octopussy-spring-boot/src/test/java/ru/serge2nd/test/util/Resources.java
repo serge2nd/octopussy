@@ -14,7 +14,7 @@ public class Resources {
         try (InputStream is = testClass.getResourceAsStream(name)) {
             return format(copyToString(is, UTF_8), args);
         } catch (IOException e) {
-            fail(format("cannot get resource %s as string", name), e);
+            fail("cannot get resource " + name + " as string", e);
         } return null;
     }
 }

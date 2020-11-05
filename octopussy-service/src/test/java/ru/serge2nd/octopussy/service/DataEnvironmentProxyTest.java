@@ -17,7 +17,6 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-import static org.hamcrest.CoreMatchers.allOf;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static ru.serge2nd.octopussy.service.Matchers.extractsTarget;
 import static ru.serge2nd.octopussy.service.Matchers.noTarget;
@@ -63,7 +62,8 @@ public class DataEnvironmentProxyTest {
 
         assertThat(
         proxy::getTarget, illegalState(),
-        proxy           , allOf(isOpen(), noTarget()));
+        proxy           , isOpen(),
+        proxy           , noTarget());
     }
 
     @Test void testGetTargetNotNull() {
@@ -180,5 +180,4 @@ public class DataEnvironmentProxyTest {
 
     interface DataEnvService extends Supplier<DataEnvironmentService> {}
     interface DataEnvFactory extends Function<DataEnvironmentDefinition, DataEnvironment> {}
-
 }
