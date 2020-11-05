@@ -9,5 +9,5 @@ script:
   - cp -f .travis.settings.xml $HOME/.m2/settings.xml
   - ./mvnw -T2 clean package
 after_success:
-  - bash <(curl -s https://codecov.io/bash)
+  - ./mvnw org.eluder.coveralls:coveralls-maven-plugin:4.3.0:report -DrepoToken=$COVERALLS_TOKEN
 ...
