@@ -1,6 +1,7 @@
 .*
+!.github
 !.mvn
-!.travis*
+!.ci.settings.xml
 !.dockerignore
 
 *.iml
