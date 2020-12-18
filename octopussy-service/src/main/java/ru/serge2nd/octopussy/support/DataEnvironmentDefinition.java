@@ -34,8 +34,8 @@ public class DataEnvironmentDefinition implements DataEnvironment {
 
     @Override @SuppressWarnings("unchecked")
     public <T> T unwrap(Class<T> t) {
-        if (t.isAssignableFrom(this.getClass())) return (T)this;
-        throw errDataEnvUnwrap(this.getClass(), t);
+        if (t.isAssignableFrom(getClass())) return (T)this;
+        throw errDataEnvUnwrap(getClass(), t);
     }
 
     @Override @JsonIgnore

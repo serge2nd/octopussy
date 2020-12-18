@@ -51,6 +51,7 @@ public class Router {
     RouterFunction<ServerResponse> routes() { return route()
 
         //region Data environments
+
         .GET(DATA_ENVS,
         rq -> ok().body(collect(dataEnvService.getAll(), mapToList(DataEnvironment::getDefinition, 0))))
 
@@ -68,6 +69,7 @@ public class Router {
         //endregion
 
         //region Queries
+
         .POST(DATA_ENV_QUERY, contentType(APPLICATION_JSON),
         rq -> {
             QueryWithParams q = validate(rq.body(QueriesRq.class), "queries").toQueries().get(0);
@@ -79,11 +81,12 @@ public class Router {
         //endregion
 
         //region Error handling
+
         .onError(DataEnvironmentException.NotFound.class,
-                (e, rq) -> handle(rq, NOT_FOUND, e))
+        (e, rq) -> handle(rq, NOT_FOUND, e))
 
         .onError(HttpMediaTypeNotSupportedException.class,
-                (e, rq) -> handle(rq, UNSUPPORTED_MEDIA_TYPE, e))
+        (e, rq) -> handle(rq, UNSUPPORTED_MEDIA_TYPE, e))
 
         .onError(e -> e instanceof DataEnvironmentException ||
                       e instanceof ServerWebInputException ||

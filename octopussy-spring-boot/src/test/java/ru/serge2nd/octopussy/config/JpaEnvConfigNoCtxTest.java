@@ -11,7 +11,6 @@ import ru.serge2nd.octopussy.spi.NativeQueryAdapter;
 import ru.serge2nd.octopussy.spi.PersistenceUnitProvider;
 import ru.serge2nd.octopussy.support.DataEnvironmentDefinition;
 import ru.serge2nd.octopussy.support.NativeQueryAdapterImpl;
-import ru.serge2nd.octopussy.support.ToListResultTransformer;
 
 import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
@@ -27,7 +26,7 @@ import static org.mockito.Answers.RETURNS_DEEP_STUBS;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.same;
 import static org.mockito.Mockito.*;
-import static org.springframework.aop.support.AopUtils.isCglibProxy;
+import static org.springframework.aop.support.AopUtils.isJdkDynamicProxy;
 import static org.springframework.test.util.ReflectionTestUtils.getField;
 import static ru.serge2nd.collection.HardProperties.properties;
 import static ru.serge2nd.octopussy.App.*;
@@ -35,11 +34,11 @@ import static ru.serge2nd.octopussy.support.DataEnvironmentDefinitionTest.ID;
 import static ru.serge2nd.stream.MapCollectors.toMap;
 import static ru.serge2nd.stream.util.Collecting.collect;
 import static ru.serge2nd.test.Asserting.assertEach;
-import static ru.serge2nd.test.matcher.AssertThat.assertThat;
-import static ru.serge2nd.test.matcher.CommonMatch.sameAs;
+import static ru.serge2nd.test.match.AssertThat.assertThat;
+import static ru.serge2nd.test.match.CommonMatch.sameAs;
 
 @TestInstance(Lifecycle.PER_CLASS)
-class DataEnvConfigNoCtxTest {
+class JpaEnvConfigNoCtxTest {
     static final String[] PROP_NAMES = {DATA_ENV_DRIVER_CLASS, DATA_ENV_URL, DATA_ENV_LOGIN, DATA_ENV_PASSWORD, DATA_ENV_DB, DATA_ENV_ID};
     static final String[] DS_PROP_NAMES = copyOfRange(PROP_NAMES, 0, 4);
 
@@ -49,8 +48,8 @@ class DataEnvConfigNoCtxTest {
             collect(toMap(k -> DATA_ENV_ID.equals(k) ? ID : (k + "_val"), 0), PROP_NAMES));
 
     final PersistenceUnitProvider providerMock = mock(PersistenceUnitProvider.class);
-    final DataEnvConfig instance = mock(DataEnvConfig.class, withSettings()
-            .spiedInstance(new DataEnvConfig(providerMock))
+    final JpaEnvConfig instance = mock(JpaEnvConfig.class, withSettings()
+            .spiedInstance(new JpaEnvConfig(providerMock))
             .defaultAnswer(RETURNS_DEEP_STUBS));
 
     @Test
@@ -90,7 +89,7 @@ class DataEnvConfigNoCtxTest {
         NativeQueryAdapter result = instance.getQueryAdapter(ID);
 
         /* THEN */ assertEach("Check proxy interfaces", () ->
-        assertTrue(isCglibProxy(result), "expected a CGLIB proxy"), () ->
+        assertTrue(isJdkDynamicProxy(result), "expected a JDK proxy"), () ->
         assertTrue(result instanceof TransactionalProxy, "expected a transactional proxy"), () ->
         assertTrue(result instanceof Advised, "expected an advised"));
         // AND
@@ -104,6 +103,6 @@ class DataEnvConfigNoCtxTest {
         assertEach("Check target", () ->
         assertNotNull(getField(target, "jpaEnv"), "no JPA environment"), () ->
         assertNotNull(th[0] = getField(target, "transformer"), "no result transformer"), () ->
-        assertSame(ToListResultTransformer.INSTANCE, getField(th[0], "delegate"), "wrong result transformer"));
+        assertSame(instance.resultTransformer(), getField(th[0], "delegate"), "wrong result transformer"));
     }
 }

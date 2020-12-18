@@ -21,11 +21,11 @@ import static ru.serge2nd.octopussy.service.Matchers.isClosed;
 import static ru.serge2nd.octopussy.service.Matchers.isOpen;
 import static ru.serge2nd.octopussy.support.DataEnvironmentDefinitionTest.DEF;
 import static ru.serge2nd.test.Asserting.assertEach;
-import static ru.serge2nd.test.matcher.AssertThat.assertThat;
-import static ru.serge2nd.test.matcher.CommonMatch.fails;
-import static ru.serge2nd.test.matcher.CommonMatch.illegalArgument;
-import static ru.serge2nd.test.matcher.CommonMatch.notNullValue;
-import static ru.serge2nd.test.matcher.CommonMatch.sameAs;
+import static ru.serge2nd.test.match.AssertThat.assertThat;
+import static ru.serge2nd.test.match.CommonMatch.fails;
+import static ru.serge2nd.test.match.CommonMatch.illegalArgument;
+import static ru.serge2nd.test.match.CommonMatch.notNullValue;
+import static ru.serge2nd.test.match.CommonMatch.sameAs;
 
 @TestInstance(Lifecycle.PER_CLASS)
 class JpaEnvironmentImplTest {

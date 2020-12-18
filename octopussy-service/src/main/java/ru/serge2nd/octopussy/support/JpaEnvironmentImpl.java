@@ -11,9 +11,7 @@ import java.io.Closeable;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-import static java.lang.String.format;
 import static lombok.AccessLevel.PROTECTED;
-import static ru.serge2nd.octopussy.spi.DataEnvironment.errDataEnvUnwrap;
 
 @Slf4j
 @Getter
@@ -39,10 +37,9 @@ public class JpaEnvironmentImpl implements JpaEnvironment {
     @Override
     @SuppressWarnings("unchecked")
     public <T> T unwrap(Class<T> t) {
-        if (t.isAssignableFrom(this.getClass())) return (T)this;
-        if (DataSource.class == t)               return (T)getDataSource();
-        if (EntityManagerFactory.class == t)     return (T)getEntityManagerFactory();
-        throw errDataEnvUnwrap(this.getClass(), t);
+        if (DataSource.class == t)           return (T)getDataSource();
+        if (EntityManagerFactory.class == t) return (T)getEntityManagerFactory();
+        return JpaEnvironment.super.unwrap(t);
     }
 
     @Override
@@ -56,7 +53,7 @@ public class JpaEnvironmentImpl implements JpaEnvironment {
                     entityManagerFactory.close();
             }
         } catch (Exception e) {
-            log.warn(format("data env %s probably already closed (%s)", getDefinition().getEnvId(), e.getMessage()), e);
+            log.warn("data env {} probably already closed ({})", definition.getEnvId(), e.getMessage(), e);
         }}
     }
 

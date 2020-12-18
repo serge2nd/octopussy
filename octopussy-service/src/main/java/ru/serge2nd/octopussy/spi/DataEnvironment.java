@@ -12,15 +12,15 @@ import static java.lang.String.format;
  * Has a custom configuration part readable via the {@link #getDefinition()} call.
  */
 public interface DataEnvironment extends Closeable {
+    String IFACE_NAME = DataEnvironment.class.getSimpleName();
 
     DataEnvironmentDefinition  getDefinition();
 
-    <T> T unwrap(Class<T> cls);
+    void close();
+    default boolean isClosed() { throw new UnsupportedOperationException(IFACE_NAME + ".isClosed()"); }
 
-    boolean isClosed();
-    void    close();
-
-    default DataEnvironmentBuilder toBuilder() { throw new UnsupportedOperationException("toBuilder()"); }
+    default <T> T                  unwrap(Class<T> t) { if (t.isInstance(this)) return t.cast(this); throw errDataEnvUnwrap(getClass(), t); }
+    default DataEnvironmentBuilder toBuilder()        { throw new UnsupportedOperationException(IFACE_NAME + ".toBuilder()"); }
 
     interface DataEnvironmentBuilder {
         DataEnvironmentBuilder definition(DataEnvironmentDefinition definition);

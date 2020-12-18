@@ -8,7 +8,6 @@ import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 import ru.serge2nd.octopussy.config.WebConfig;
@@ -17,6 +16,7 @@ import ru.serge2nd.octopussy.spi.NativeQueryAdapterProvider;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.mockito.Answers.RETURNS_DEEP_STUBS;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 
 @Configuration
 @Import(WebConfig.class)
@@ -34,7 +34,7 @@ public class TestWebConfig {
                     r.setContentType(MediaType.APPLICATION_JSON_VALUE);
                     r.setCharacterEncoding(UTF_8.name());
                     chain.doFilter(request, response); })
-                .alwaysDo(MockMvcResultHandlers.print())
+                .alwaysDo(print())
                 .build();
     }
 }

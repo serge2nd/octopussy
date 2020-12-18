@@ -15,7 +15,6 @@ import ru.serge2nd.octopussy.support.DataEnvironmentDefinition;
 
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.function.Supplier;
 
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static ru.serge2nd.octopussy.service.Matchers.extractsTarget;
@@ -26,15 +25,15 @@ import static ru.serge2nd.octopussy.service.Matchers.isClosed;
 import static ru.serge2nd.octopussy.service.Matchers.isOpen;
 import static ru.serge2nd.octopussy.support.DataEnvironmentDefinitionTest.DEF;
 import static ru.serge2nd.octopussy.support.DataEnvironmentDefinitionTest.ID;
-import static ru.serge2nd.test.matcher.AssertThat.assertThat;
-import static ru.serge2nd.test.matcher.CommonMatch.fails;
-import static ru.serge2nd.test.matcher.CommonMatch.illegalState;
+import static ru.serge2nd.test.match.AssertThat.assertThat;
+import static ru.serge2nd.test.match.CommonMatch.fails;
+import static ru.serge2nd.test.match.CommonMatch.illegalState;
 
 @ExtendWith(MockitoExtension.class)
 @TestInstance(Lifecycle.PER_CLASS)
 public class DataEnvironmentProxyTest {
     @Mock                              DataEnvironmentProxy dataEnvMock;
-    @Mock(answer = RETURNS_DEEP_STUBS) DataEnvService serviceMock;
+    @Mock                              DataEnvironmentService serviceMock;
     @Mock(answer = RETURNS_DEEP_STUBS) DataEnvFactory factoryMock;
     DataEnvironmentProxy proxy;
 
@@ -160,24 +159,23 @@ public class DataEnvironmentProxyTest {
         mockWorker(i -> {throw expected;});
 
         /* THEN */
-        assertThat(()->proxy.unwrap(null), fails(expected), () ->
+        assertThat(()->proxy.unwrap(DataEnvironment.class), fails(expected), () ->
         verifyNoInteractions(dataEnvMock));
     }
 
     @SuppressWarnings("unchecked")
     void mockWorker(Consumer<InvocationOnMock> invocationConsumer) {
-        when(serviceMock.get().doWith(eq(ID), same(DataEnvironmentProxy.class), any(Function.class)))
+        when(serviceMock.doWith(eq(ID), same(DataEnvironmentProxy.class), any(Function.class)))
         .thenAnswer(i -> {invocationConsumer.accept(i); return null;});
     }
     @SuppressWarnings("unchecked")
     void enableWorker(Runnable pre, DataEnvironment arg) {
-        when(serviceMock.get().doWith(eq(ID), same(DataEnvironmentProxy.class), any(Function.class)))
+        when(serviceMock.doWith(eq(ID), same(DataEnvironmentProxy.class), any(Function.class)))
         .thenAnswer(i -> {
             pre.run();
             return i.getArgument(2, Function.class).apply(arg);
         });
     }
 
-    interface DataEnvService extends Supplier<DataEnvironmentService> {}
     interface DataEnvFactory extends Function<DataEnvironmentDefinition, DataEnvironment> {}
 }

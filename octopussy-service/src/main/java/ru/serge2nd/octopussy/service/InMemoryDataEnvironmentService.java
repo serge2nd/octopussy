@@ -1,6 +1,6 @@
 package ru.serge2nd.octopussy.service;
 
-import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import ru.serge2nd.collection.Unmodifiable;
 import ru.serge2nd.octopussy.spi.DataEnvironment;
 import ru.serge2nd.octopussy.spi.DataEnvironmentService;
@@ -18,11 +18,16 @@ import static java.util.Optional.ofNullable;
 import static ru.serge2nd.octopussy.service.ex.DataEnvironmentException.errDataEnvExists;
 import static ru.serge2nd.octopussy.service.ex.DataEnvironmentException.errDataEnvNotFound;
 
-@RequiredArgsConstructor
+@Slf4j
 public class InMemoryDataEnvironmentService implements DataEnvironmentService, Closeable {
     private final Map<String, DataEnvironment> byId;
     private final DataEnvironment dataEnvPrototype;
-    private final UnaryOperator<DataEnvironment> preClose;
+
+    public InMemoryDataEnvironmentService(Map<String, DataEnvironment> byId,
+                                          DataEnvironment dataEnvPrototype) {
+        this.byId = byId;
+        this.dataEnvPrototype = dataEnvPrototype;
+    }
 
     @Override
     public DataEnvironment             get(String envId)  { return find(envId).orElseThrow(()-> errDataEnvNotFound(envId)); }
@@ -35,7 +40,7 @@ public class InMemoryDataEnvironmentService implements DataEnvironmentService, C
     @SuppressWarnings("unchecked")
     public <T, R> R doWith(String envId, Class<T> t, Function<T, R> action) {
         Object[] result = new Object[1];
-        this.compute(dataEnv -> result[0] =
+        peek(dataEnv -> result[0] =
                 action.apply(ofNullable(dataEnv)
                 .orElseThrow(()->errDataEnvNotFound(envId))
                 .unwrap(t)), envId);
@@ -45,7 +50,7 @@ public class InMemoryDataEnvironmentService implements DataEnvironmentService, C
     @Override
     public DataEnvironment create(DataEnvironment toCreate) {
         String envId = toCreate.getDefinition().getEnvId();
-        return this.compute(envId, existing -> ofNullable(
+        return compute(envId, existing -> ofNullable(
                 isNull(existing) ? toCreate : null)
                 .map(raw -> dataEnvPrototype.toBuilder()
                         .definition(raw.getDefinition())
@@ -55,19 +60,23 @@ public class InMemoryDataEnvironmentService implements DataEnvironmentService, C
 
     @Override
     public void delete(String envId) {
-        this.computeAndRemove(existing ->
-                ofNullable(existing).map(preClose)
+        cut(existing ->
+                ofNullable(existing)
                 .orElseThrow(()->errDataEnvNotFound(envId))
                 .close(), envId);
     }
 
     @Override
-    public void close() { for (DataEnvironment dataEnv : byId.values()) preClose.apply(dataEnv).close(); }
+    public void close() {
+        log.debug("closing all the data envs...");
+        for (DataEnvironment dataEnv : byId.values())
+            dataEnv.close();
+    }
 
-    protected DataEnvironment computeAndRemove(Consumer<DataEnvironment> consumer, String envId) {
+    protected DataEnvironment cut(Consumer<DataEnvironment> consumer, String envId) {
         return this.compute(envId, val -> {consumer.accept(val); return null;});
     }
-    protected DataEnvironment compute(Consumer<DataEnvironment> consumer, String envId) {
+    protected DataEnvironment peek(Consumer<DataEnvironment> consumer, String envId) {
         return this.compute(envId, val -> {consumer.accept(val); return val;});
     }
     protected DataEnvironment compute(String envId, UnaryOperator<DataEnvironment> mapping) {

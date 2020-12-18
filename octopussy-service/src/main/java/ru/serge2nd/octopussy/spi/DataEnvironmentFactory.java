@@ -10,6 +10,4 @@ import java.util.Map;
 public interface DataEnvironmentFactory {
 
     JpaEnvironment newJpaEnvironment(DataEnvironmentDefinition definition);
-
-    Map<String, String> getPropertyMappings();
 }

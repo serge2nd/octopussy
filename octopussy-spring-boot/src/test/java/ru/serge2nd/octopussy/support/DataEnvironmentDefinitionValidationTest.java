@@ -22,7 +22,7 @@ import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static ru.serge2nd.octopussy.support.DataEnvironmentDefinition.builder;
 import static ru.serge2nd.octopussy.support.DataEnvironmentDefinitionTest.DEF;
 import static ru.serge2nd.octopussy.support.DataEnvironmentDefinitionTest.ID;
-import static ru.serge2nd.test.matcher.AssertThat.assertThat;
+import static ru.serge2nd.test.match.AssertThat.assertThat;
 import static ru.serge2nd.test.util.CustomMatchers.equalToJson;
 
 @JsonTest @Import(LocalValidatorFactoryBean.class)

@@ -19,13 +19,13 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static ru.serge2nd.octopussy.support.ToListResultTransformer.INSTANCE;
-import static ru.serge2nd.test.matcher.AssertThat.assertThat;
-import static ru.serge2nd.test.matcher.CommonMatch.equalTo;
-import static ru.serge2nd.test.matcher.CommonMatch.fails;
+import static ru.serge2nd.test.match.AssertThat.assertThat;
+import static ru.serge2nd.test.match.CommonMatch.equalTo;
+import static ru.serge2nd.test.match.CommonMatch.fails;
 
 @TestInstance(Lifecycle.PER_CLASS)
 class ToListResultTransformerTest {
+    static final ToListResultTransformer INSTANCE = new ToListResultTransformer();
 
     @Test void testTransformTuple() throws SQLException {
         // GIVEN

@@ -2,10 +2,10 @@ package ru.serge2nd.octopussy.service;
 
 import org.hamcrest.Matcher;
 import ru.serge2nd.octopussy.spi.DataEnvironment;
-import ru.serge2nd.test.matcher.builder.MatcherBuilder;
+import ru.serge2nd.test.match.builder.MatcherBuilder;
 
-import static ru.serge2nd.test.matcher.CommonMatch.sameAs;
-import static ru.serge2nd.test.matcher.MatchAssist.not;
+import static ru.serge2nd.test.match.CommonMatch.sameAs;
+import static ru.serge2nd.test.match.MatchAssist.not;
 
 public class Matchers {
 

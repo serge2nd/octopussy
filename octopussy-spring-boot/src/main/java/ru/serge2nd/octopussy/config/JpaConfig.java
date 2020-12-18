@@ -2,10 +2,6 @@ package ru.serge2nd.octopussy.config;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
-import org.springframework.boot.autoconfigure.jdbc.DataSourceTransactionManagerAutoConfiguration;
-import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -24,10 +20,6 @@ import static ru.serge2nd.octopussy.App.DATA_ENV_ID;
 import static ru.serge2nd.octopussy.App.DATA_ENV_PKGS;
 
 @Configuration
-@EnableAutoConfiguration(exclude = {
-        DataSourceAutoConfiguration.class,
-        DataSourceTransactionManagerAutoConfiguration.class,
-        HibernateJpaAutoConfiguration.class})
 public class JpaConfig implements PersistenceUnitProvider {
     @Immutable@Bean @ConfigurationProperties("spring.datasource.hikari")
     Map<String, String> baseDataSourceProps() { return new HashMap<>(); }

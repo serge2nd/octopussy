@@ -9,7 +9,6 @@ public class App {
     public static final String QUERY_ADAPTERS_CACHE = "nativeQueryAdapters";
 
     public static final String DATA_ENV_ID = "octps.data.env.id";
-    public static final String DATA_ENV_PU = "octps.data.env.pu";
     public static final String DATA_ENV_PKGS = "octps.data.env.pkgs";
 
     public static final String DATA_ENV_DB = "database";

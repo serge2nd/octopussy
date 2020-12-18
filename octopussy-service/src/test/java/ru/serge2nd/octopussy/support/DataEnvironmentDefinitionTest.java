@@ -9,9 +9,9 @@ import ru.serge2nd.octopussy.spi.JpaEnvironment;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static ru.serge2nd.octopussy.service.Matchers.isClosed;
 import static ru.serge2nd.octopussy.support.DataEnvironmentDefinition.builder;
-import static ru.serge2nd.test.matcher.AssertThat.assertThat;
-import static ru.serge2nd.test.matcher.CommonMatch.illegalArgument;
-import static ru.serge2nd.test.matcher.CommonMatch.sameAs;
+import static ru.serge2nd.test.match.AssertThat.assertThat;
+import static ru.serge2nd.test.match.CommonMatch.illegalArgument;
+import static ru.serge2nd.test.match.CommonMatch.sameAs;
 
 @TestInstance(Lifecycle.PER_CLASS)
 public class DataEnvironmentDefinitionTest {

@@ -10,11 +10,9 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @EnableWebMvc
 public class WebConfig implements WebMvcConfigurer {
     @Override
-    @SuppressWarnings("deprecation")
     public void configureContentNegotiation(ContentNegotiationConfigurer configurer) {
         configurer.defaultContentType(MediaType.APPLICATION_JSON);
         configurer.favorParameter(false);
         configurer.ignoreAcceptHeader(true);
-        configurer.favorPathExtension(false);
     }
 }

@@ -40,6 +40,7 @@ import static org.mockito.Answers.RETURNS_DEEP_STUBS;
 import static org.mockito.Answers.RETURNS_SELF;
 import static org.mockito.Mockito.*;
 import static org.springframework.transaction.TransactionDefinition.*;
+import static ru.serge2nd.octopussy.App.QUERY_ADAPTERS_CACHE;
 import static ru.serge2nd.octopussy.support.DataEnvironmentDefinitionTest.DEF;
 import static ru.serge2nd.octopussy.support.DataEnvironmentDefinitionTest.ID;
 import static ru.serge2nd.octopussy.util.Queries.queries;
@@ -54,7 +55,7 @@ class NativeQueryAdapterImplTransactionTest implements BaseContextTest {
     @Autowired NativeQueryAdapterProvider adapterProvider;
     @MockBean DataEnvironmentService envServiceMock;
     @MockBean Function<EntityManagerFactory, PlatformTransactionManager> tmProviderMock;
-    @Value("#{cacheManager.getCache('nativeQueryAdapters')}") Cache queryAdaptersCache;
+    @Value("#{cacheManager.getCache('"+QUERY_ADAPTERS_CACHE+"')}") Cache queryAdaptersCache;
 
     @Mock(answer = RETURNS_DEEP_STUBS) EntityManagerFactory emfMock;
     @Mock(answer = RETURNS_DEEP_STUBS) PlatformTransactionManager tmMock;
@@ -80,15 +81,15 @@ class NativeQueryAdapterImplTransactionTest implements BaseContextTest {
     @Test
     void testGetQueryAdapterCached() {
         // GIVEN
+        mockDataEnvService(); mockTransactionManager();
         NativeQueryAdapter queryAdapterMock = mock(NativeQueryAdapter.class);
         queryAdaptersCache.put(ID, queryAdapterMock);
 
         // WHEN
         NativeQueryAdapter queryAdapter = adapterProvider.getQueryAdapter(ID);
 
-        /* THEN */ assertEach(() ->
-        assertSame(queryAdapterMock, queryAdapter, "expected cached object"), () ->
-        verifyNoInteractions(envServiceMock));
+        // THEN
+        assertSame(queryAdapterMock, queryAdapter, "expected cached object");
     }
 
     @Test

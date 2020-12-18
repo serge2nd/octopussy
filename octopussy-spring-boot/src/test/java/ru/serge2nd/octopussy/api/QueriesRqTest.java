@@ -28,7 +28,7 @@ import static java.util.Collections.singletonMap;
 import static java.util.stream.Collectors.toList;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
-import static ru.serge2nd.test.matcher.AssertThat.assertThat;
+import static ru.serge2nd.test.match.AssertThat.assertThat;
 import static ru.serge2nd.test.util.CustomMatchers.equalToJson;
 
 @JsonTest @Import(LocalValidatorFactoryBean.class)

@@ -1,14 +1,14 @@
 package ru.serge2nd.test.util;
 
+import lombok.SneakyThrows;
 import org.hamcrest.Matcher;
 import org.skyscreamer.jsonassert.JSONCompare;
 import org.skyscreamer.jsonassert.JSONCompareMode;
 import org.skyscreamer.jsonassert.JSONCompareResult;
-import ru.serge2nd.test.matcher.builder.MatcherBuilder;
+import ru.serge2nd.test.match.builder.MatcherBuilder;
 
 import static org.skyscreamer.jsonassert.JSONCompareMode.LENIENT;
 import static ru.serge2nd.test.Cfg.EOL;
-import static ru.serge2nd.test.util.ToRun.throwSneaky;
 
 public class CustomMatchers {
 
@@ -21,11 +21,8 @@ public class CustomMatchers {
                 .build();
     }
 
+    @SneakyThrows
     static JSONCompareResult compareJson(String expected, String actual, JSONCompareMode mode) {
-        try {
-            return JSONCompare.compareJSON(expected, actual, mode);
-        } catch (Exception e) {
-            throwSneaky(e); return null;
-        }
+        return JSONCompare.compareJSON(expected, actual, mode);
     }
 }

@@ -9,8 +9,7 @@ import java.sql.*;
 import java.util.List;
 
 @Slf4j
-public enum ToListResultTransformer implements ResultTransformer {
-    INSTANCE;
+public class ToListResultTransformer implements ResultTransformer {
 
     @Override
     public Object transform(@NonNull Object[] tuple, String[] aliases) {

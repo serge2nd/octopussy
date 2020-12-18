@@ -17,11 +17,11 @@ import static ru.serge2nd.octopussy.util.Queries.EMPTY;
 import static ru.serge2nd.octopussy.util.Queries.mapToQueries;
 import static ru.serge2nd.octopussy.util.Queries.queries;
 import static ru.serge2nd.stream.util.Collecting.collect;
-import static ru.serge2nd.test.matcher.AssertForMany.assertForMany;
-import static ru.serge2nd.test.matcher.AssertThat.assertThat;
-import static ru.serge2nd.test.matcher.CommonMatch.equalTo;
-import static ru.serge2nd.test.matcher.CommonMatch.illegalArgument;
-import static ru.serge2nd.test.matcher.CommonMatch.sameAs;
+import static ru.serge2nd.test.match.AssertForMany.assertForMany;
+import static ru.serge2nd.test.match.AssertThat.assertThat;
+import static ru.serge2nd.test.match.CommonMatch.equalTo;
+import static ru.serge2nd.test.match.CommonMatch.illegalArgument;
+import static ru.serge2nd.test.match.CommonMatch.sameAs;
 
 @TestInstance(Lifecycle.PER_CLASS)
 class QueriesTest {

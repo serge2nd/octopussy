@@ -1,7 +1,10 @@
 package ru.serge2nd.octopussy.service;
 
+import lombok.SneakyThrows;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InOrder;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.TestInstance.Lifecycle;
 import ru.serge2nd.octopussy.service.ex.DataEnvironmentException;
 import ru.serge2nd.octopussy.spi.DataEnvironment;
 import ru.serge2nd.octopussy.support.DataEnvironmentDefinition;
@@ -14,29 +17,27 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Function;
-import java.util.function.UnaryOperator;
 
-import static java.lang.Thread.sleep;
 import static java.util.Collections.singletonMap;
 import static java.util.concurrent.CompletableFuture.runAsync;
 import static java.util.concurrent.CompletableFuture.supplyAsync;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.fail;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Answers.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.*;
 import static org.mockito.internal.util.collections.Sets.newSet;
 import static ru.serge2nd.stream.CommonCollectors.toList;
 import static ru.serge2nd.stream.util.Collecting.collect;
 import static ru.serge2nd.test.Asserting.assertEach;
-import static ru.serge2nd.test.matcher.AssertThat.assertThat;
-import static ru.serge2nd.test.matcher.CommonMatch.absent;
-import static ru.serge2nd.test.matcher.CommonMatch.equalTo;
-import static ru.serge2nd.test.matcher.CommonMatch.fails;
-import static ru.serge2nd.test.matcher.CommonMatch.presentedSame;
-import static ru.serge2nd.test.matcher.CommonMatch.sameAs;
+import static ru.serge2nd.test.match.AssertThat.assertThat;
+import static ru.serge2nd.test.match.CommonMatch.absent;
+import static ru.serge2nd.test.match.CommonMatch.equalTo;
+import static ru.serge2nd.test.match.CommonMatch.fails;
+import static ru.serge2nd.test.match.CommonMatch.presentedSame;
+import static ru.serge2nd.test.match.CommonMatch.sameAs;
 
 @SuppressWarnings("SynchronizationOnLocalVariableOrMethodParameter")
+@TestInstance(Lifecycle.PER_CLASS)
 class InMemoryDataEnvironmentServiceTest {
     static final String ID1 = "5010";
     static final String ID2 = "7010";
@@ -45,12 +46,15 @@ class InMemoryDataEnvironmentServiceTest {
     final DataEnvironment              DATA_ENV = dataEnv(ID1);
     final DataEnvironment              EXISTING = spy(dataEnv(ID2));
     final Map<String, DataEnvironment> INITIAL  = singletonMap(ID2, EXISTING);
+    final Map<String, DataEnvironment> REPO     = new ConcurrentHashMap<>(INITIAL);
 
-    final Map<String, DataEnvironment> repository = new ConcurrentHashMap<>(INITIAL);
-    final UnaryOperator<DataEnvironment> preClose = mock(OP_CLS, i -> i.getArgument(0));
+    final DataEnvironment                prototypeMock  = mock(DataEnvironment.class, RETURNS_DEEP_STUBS);
+    final InMemoryDataEnvironmentService dataEnvService = new InMemoryDataEnvironmentService(REPO, prototypeMock);
 
-    final DataEnvironment          prototypeMock  = mock(DataEnvironment.class, RETURNS_DEEP_STUBS);
-    InMemoryDataEnvironmentService dataEnvService = new InMemoryDataEnvironmentService(repository, prototypeMock, preClose);
+    @BeforeEach void setUp() {
+        REPO.clear(); REPO.putAll(INITIAL);
+        reset(EXISTING, prototypeMock);
+    }
 
     @Test
     void testGet() {
@@ -59,19 +63,19 @@ class InMemoryDataEnvironmentServiceTest {
 
         // THEN
         assertThat(result, sameAs(EXISTING), () ->
-        assertEquals(INITIAL, repository, "repository should remain unchanged"));
+        assertEquals(INITIAL, REPO, "repository should remain unchanged"));
     }
 
     @Test
     void testGetNotFound() {
         assertThat(()->dataEnvService.get(ID1), fails(DataEnvironmentException.NotFound.class), () ->
-        assertEquals(INITIAL, repository, "repository should remain unchanged"));
+        assertEquals(INITIAL, REPO, "repository should remain unchanged"));
     }
 
     @Test
     void testFind() {
         // GIVEN
-        repository.put(ID1, DATA_ENV);
+        REPO.put(ID1, DATA_ENV);
 
         // WHEN
         Optional<DataEnvironment> result = dataEnvService.find(ID1);
@@ -81,7 +85,7 @@ class InMemoryDataEnvironmentServiceTest {
         assertEquals(new HashMap<String, DataEnvironment>() {{
             put(ID1, DATA_ENV);
             put(ID2, EXISTING);
-        }}, repository, "repository should keep all elements"));
+        }}, REPO, "repository should keep all elements"));
     }
 
     @Test
@@ -91,13 +95,13 @@ class InMemoryDataEnvironmentServiceTest {
 
         // THEN
         assertThat(result, absent(), () ->
-        assertEquals(INITIAL, repository, "repository should remain unchanged"));
+        assertEquals(INITIAL, REPO, "repository should remain unchanged"));
     }
 
     @Test
     void testGetAll() {
         // GIVEN
-        repository.put(ID1, DATA_ENV);
+        REPO.put(ID1, DATA_ENV);
 
         // WHEN
         List<DataEnvironment> result = collect(dataEnvService.getAll(), toList(0));
@@ -117,7 +121,7 @@ class InMemoryDataEnvironmentServiceTest {
 
         // THEN
         assertThat(result, equalTo(expected), () ->
-        assertEquals(INITIAL, repository, "repository should remain unchanged"));
+        assertEquals(INITIAL, REPO, "repository should remain unchanged"));
     }
 
     @Test
@@ -129,7 +133,9 @@ class InMemoryDataEnvironmentServiceTest {
     void testCreate() {
         // GIVEN
         DataEnvironment expected = mock(DataEnvironment.class);
-        when(prototypeMock.toBuilder().definition(same(DATA_ENV.getDefinition())).build()).thenReturn(expected);
+        when(prototypeMock.toBuilder()
+                .definition(same(DATA_ENV.getDefinition())).build())
+                .thenReturn(expected);
 
         // WHEN
         DataEnvironment created = dataEnvService.create(DATA_ENV);
@@ -139,34 +145,33 @@ class InMemoryDataEnvironmentServiceTest {
         assertEquals(new HashMap<String, DataEnvironment>() {{
             put(ID1, created);
             put(ID2, EXISTING);
-        }}, repository, "repository should keep all elements"));
+        }}, REPO, "repository should keep all elements"));
     }
 
     @Test
     void testCreateAlreadyExists() {
         assertThat(()->dataEnvService.create(dataEnv(ID2)), fails(DataEnvironmentException.Exists.class), () ->
-        assertEquals(INITIAL, repository, "repository should remain unchanged"));
+        assertEquals(INITIAL, REPO, "repository should remain unchanged"));
     }
 
     @Test
     void testDelete() {
         // GIVEN
-        repository.put(ID1, DATA_ENV);
+        REPO.put(ID1, DATA_ENV);
 
         // WHEN
         dataEnvService.delete(ID2);
 
         // THEN
-        InOrder inOrder = inOrder(preClose, EXISTING); assertEach(() ->
-        assertEquals(singletonMap(ID1, DATA_ENV), repository, "expected one element left"), () ->
-        inOrder.verify(preClose, times(1)).apply(same(EXISTING)), () ->
-        inOrder.verify(EXISTING, times(1)).close());
+        assertEach(() ->
+        assertEquals(singletonMap(ID1, DATA_ENV), REPO, "expected one element left"), () ->
+        verify(EXISTING, times(1)).close());
     }
 
     @Test
     void testDeleteNotFound() {
         assertThat(()->dataEnvService.delete(ID1), fails(DataEnvironmentException.NotFound.class), () ->
-        assertEquals(INITIAL, repository, "repository should remain unchanged"));
+        assertEquals(INITIAL, REPO, "repository should remain unchanged"));
     }
 
     @Test
@@ -205,30 +210,22 @@ class InMemoryDataEnvironmentServiceTest {
             .get(TIMEOUT, MILLISECONDS), dataEnvService);
     }
 
+    @SneakyThrows
     static void runAsyncAndDelayOn(Object lock, Runnable task, CountDownLatch start) {
-        runAsync(task); try {
-            start.await(10*TIMEOUT, MILLISECONDS);
-            synchronized (lock) { sleep(1); }
-        } catch (InterruptedException e) {
-            fail("unexpected interruption", e);
-        }
+        runAsync(task);
+        assertTrue(start.await(10*TIMEOUT, MILLISECONDS), "unexpected timeout on start");
+        synchronized (lock) {}
     }
-
+    @SneakyThrows
     static <T> T waitOn(Object lock, CountDownLatch freeLocks) {
-        synchronized (lock) { try {
+        synchronized (lock) {
             freeLocks.countDown();
             lock.wait(TIMEOUT + 200);
-        } catch (InterruptedException e) {
-            fail("unexpected interruption", e);
-        }} return null;
+        } return null;
     }
-
     static void assertTimeoutAndRelease(ToRun e, Object lock) {
-        try {
-            assertThat(e, fails(TimeoutException.class));
-        } finally {
-            synchronized (lock) { lock.notifyAll(); }
-        }
+        try     { assertThat(e, fails(TimeoutException.class)); }
+        finally { synchronized(lock) {lock.notifyAll();} }
     }
 
     static DataEnvironment dataEnv(String envId) {
@@ -245,7 +242,4 @@ class InMemoryDataEnvironmentServiceTest {
             super(definition, dataSource, entityManagerFactory);
         }
     }
-
-    @SuppressWarnings("unchecked,rawtypes")
-    static final Class<UnaryOperator<DataEnvironment>> OP_CLS = (Class)UnaryOperator.class;
 }

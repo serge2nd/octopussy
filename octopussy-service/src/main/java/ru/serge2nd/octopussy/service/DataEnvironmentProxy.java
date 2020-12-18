@@ -1,18 +1,19 @@
 package ru.serge2nd.octopussy.service;
 
 import lombok.Builder;
+import lombok.extern.slf4j.Slf4j;
 import ru.serge2nd.octopussy.spi.DataEnvironment;
 import ru.serge2nd.octopussy.spi.DataEnvironmentService;
 import ru.serge2nd.octopussy.support.DataEnvironmentDefinition;
 
 import java.util.function.Function;
-import java.util.function.Supplier;
 
 import static ru.serge2nd.octopussy.service.ex.DataEnvironmentException.errDataEnvClosed;
 
+@Slf4j
 public class DataEnvironmentProxy implements DataEnvironment {
     private final DataEnvironmentDefinition definition;
-    private final Supplier<DataEnvironmentService> service;
+    private final DataEnvironmentService service;
     private final Function<DataEnvironmentDefinition, DataEnvironment> dataEnvFactory;
 
     protected volatile DataEnvironment target;
@@ -20,7 +21,7 @@ public class DataEnvironmentProxy implements DataEnvironment {
 
     @Builder(toBuilder = true)
     public DataEnvironmentProxy(DataEnvironmentDefinition definition,
-                                Supplier<DataEnvironmentService> service,
+                                DataEnvironmentService service,
                                 Function<DataEnvironmentDefinition, DataEnvironment> dataEnvFactory) {
         this.definition = definition;
         this.service = service;
@@ -30,19 +31,24 @@ public class DataEnvironmentProxy implements DataEnvironment {
     @Override
     public DataEnvironmentDefinition getDefinition()    { return this.definition; }
     @Override @SuppressWarnings("unchecked")
-    public <T> T                     unwrap(Class<T> t) { return (DataEnvironmentProxy.class == t) ? (T)this : getTarget().unwrap(t); }
+    public <T> T                     unwrap(Class<T> t) { return DataEnvironmentProxy.class.isAssignableFrom(t) ? (T)this : getTarget().unwrap(t); }
 
     @Override
     public boolean isClosed() { return this.closed; }
     @Override
     public void close() { if (!isClosed()) {
-        service.get().doWith(definition.getEnvId(), DataEnvironmentProxy.class, proxy -> {
+        String envId = definition.getEnvId();
+        log.debug("closing the data env " + envId + "...");
+
+        service.doWith(definition.getEnvId(), DataEnvironmentProxy.class, proxy -> {
             proxy.checkProxyActive(this);
 
             if (!proxy.isClosed()) {
                 proxy.closed = true;
                 DataEnvironment target = proxy.target;
                 if (target != null) target.close();
+            } else {
+                log.debug(envId + " was closed by another thread");
             }
 
             return null;
@@ -54,14 +60,20 @@ public class DataEnvironmentProxy implements DataEnvironment {
         if (target != null)
             return target;
 
-        return service.get().doWith(definition.getEnvId(), DataEnvironmentProxy.class, proxy -> {
+        String envId = definition.getEnvId();
+        log.debug("trying on-demand initialization of the data env " + envId + "...");
+
+        return service.doWith(envId, DataEnvironmentProxy.class, proxy -> {
             proxy.checkProxyActive(this);
             proxy.checkOpen();
 
             DataEnvironment target = proxy.target;
 
-            if (target == null)
+            if (target == null) {
                 proxy.target = target = dataEnvFactory.apply(proxy.definition);
+            } else {
+                log.debug(envId + " was initialized by another thread");
+            }
 
             return target;
         });

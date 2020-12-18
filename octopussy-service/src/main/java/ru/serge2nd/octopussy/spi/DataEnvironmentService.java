@@ -8,7 +8,7 @@ import java.util.concurrent.Executor;
 import java.util.function.Function;
 
 /**
- * Manages (adds, processes, removes) {@link DataEnvironment} instances.
+ * Manages (creates, processes, removes) {@link DataEnvironment} instances.
  */
 public interface DataEnvironmentService {
 
