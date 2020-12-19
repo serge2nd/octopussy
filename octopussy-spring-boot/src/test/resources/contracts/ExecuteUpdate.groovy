@@ -6,7 +6,7 @@ Contract.make {
     description "must execute update"
     request {
         method POST()
-        url "/dataEnvironments/db1000/update"
+        url "/dataKits/db1000/update"
         body(
             "queries": [[
                 "query": "not executed",

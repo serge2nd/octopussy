@@ -31,8 +31,9 @@ import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static ru.serge2nd.test.match.AssertThat.assertThat;
 import static ru.serge2nd.test.util.CustomMatchers.equalToJson;
 
-@JsonTest @Import(LocalValidatorFactoryBean.class)
 @TestInstance(Lifecycle.PER_CLASS)
+@JsonTest @Import(LocalValidatorFactoryBean.class)
+@SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
 class QueriesRqTest implements BaseContextTest {
     static final String J = "query_rq_tmpl.json";
     static final String Q = "not executed";
@@ -111,5 +112,5 @@ class QueriesRqTest implements BaseContextTest {
 
     String json(QueriesRq rq) throws IOException { return tester.write(rq).getJson(); }
 
-    static String str(String name, Object... args) { return Resources.asString(name, lookup().lookupClass(), args); }
+    static String str(String name, Object... args) { return Resources.asString(name, lookup(), args); }
 }

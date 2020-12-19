@@ -10,8 +10,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import ru.serge2nd.octopussy.App;
 import ru.serge2nd.octopussy.BaseContextTest;
 import ru.serge2nd.octopussy.NoWebConfig.NoWebSpringBootTest;
-import ru.serge2nd.octopussy.spi.DataEnvironment;
-import ru.serge2nd.octopussy.spi.DataEnvironmentService;
+import ru.serge2nd.octopussy.spi.DataKit;
+import ru.serge2nd.octopussy.spi.DataKitService;
 import ru.serge2nd.octopussy.spi.NativeQueryAdapter;
 import ru.serge2nd.octopussy.spi.NativeQueryAdapterProvider;
 import ru.serge2nd.test.util.Resources;
@@ -29,7 +29,7 @@ import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
-import static ru.serge2nd.octopussy.support.DataEnvironmentDefinitionTest.ID;
+import static ru.serge2nd.octopussy.support.DataKitDefinitionTest.ID;
 import static ru.serge2nd.test.util.CustomAssertions.assertStrictlyEquals;
 
 @NoWebSpringBootTest
@@ -39,16 +39,16 @@ class NativeQueryAdapterImplTest implements BaseContextTest {
 
     NativeQueryAdapter queryAdapter;
 
-    @Autowired void init(DataEnvironmentService service, NativeQueryAdapterProvider provider) {
-        queryAdapter = provider.getQueryAdapter(createDataEnv(service));
+    @Autowired void init(DataKitService service, NativeQueryAdapterProvider provider) {
+        queryAdapter = provider.getQueryAdapter(createDataKit(service));
     }
 
     static Stream<Arguments> queriesProvider() { return Stream.of(
-            arguments("empty" , str("tuples.sql") + "\nLIMIT 0" , emptyList()),
-            arguments("scalar", str("scalars.sql") + "\nLIMIT 1", SCALARS.subList(0, 1)),
-            arguments("column", str("scalars.sql")              , SCALARS),
-            arguments("row"   , str("tuples.sql") + "\nLIMIT 1" , TUPLES.subList(0, 1)),
-            arguments("table" , str("tuples.sql")               , TUPLES)); }
+        arguments("empty" , str("tuples.sql") + "\nLIMIT 0" , emptyList()),
+        arguments("scalar", str("scalars.sql") + "\nLIMIT 1", SCALARS.subList(0, 1)),
+        arguments("column", str("scalars.sql")              , SCALARS),
+        arguments("row"   , str("tuples.sql") + "\nLIMIT 1" , TUPLES.subList(0, 1)),
+        arguments("table" , str("tuples.sql")               , TUPLES)); }
     @ParameterizedTest(name = "{0}")
     @MethodSource("queriesProvider")
     void testExecuteQuery(String title, String query, List<?> expected) {
@@ -59,18 +59,18 @@ class NativeQueryAdapterImplTest implements BaseContextTest {
         assertStrictlyEquals(expected, result);
     }
 
-    DataEnvironment createDataEnv(DataEnvironmentService service) {
-        return service.create(DataEnvironmentDefinition.builder()
-                .envId(ID)
-                .property(App.DATA_ENV_DB, "H2")
-                .property(App.DATA_ENV_DRIVER_CLASS, Driver.class.getName())
-                .property(App.DATA_ENV_URL, URL_PREFIX + ID)
-                .property(App.DATA_ENV_LOGIN, "")
-                .property(App.DATA_ENV_PASSWORD, "")
-                .build());
+    DataKit createDataKit(DataKitService service) {
+        return service.create(DataKitDefinition.builder()
+            .kitId(ID)
+            .property(App.DATA_KIT_DB, "H2")
+            .property(App.DATA_KIT_DRIVER_CLASS, Driver.class.getName())
+            .property(App.DATA_KIT_URL, URL_PREFIX + ID)
+            .property(App.DATA_KIT_LOGIN, "")
+            .property(App.DATA_KIT_PASSWORD, "")
+            .build());
     }
 
-    static String str(String name, Object... args) { return Resources.asString(name, lookup().lookupClass(), args); }
+    static String str(String name, Object... args) { return Resources.asString(name, lookup(), args); }
 
     static final List<Byte> SCALARS = asList((byte)5, (byte)7);
 

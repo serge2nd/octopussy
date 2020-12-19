@@ -1,12 +1,12 @@
 import org.springframework.cloud.contract.spec.Contract
 
 Contract.make {
-    description 'must create a data environment'
+    description 'must create a data kit'
     request {
         method POST()
-        url '/dataEnvironments'
+        url '/dataKits'
         body(
-            envId: 'db1000',
+            kitId: 'db1000',
             properties: [
                 url: 'jdbc:h2:mem:db1000',
                 login: 'serge'
@@ -16,7 +16,7 @@ Contract.make {
     response {
         status CREATED()
         body(
-            envId: 'db3000',
+            kitId: 'db3000',
             properties: [
                 abc: 'xyz'
             ]

@@ -1,22 +1,22 @@
 {
   "properties": [
     {
-      "name": "octps.data.env.arg.mapping.driverClass",
+      "name": "octps.data.kit.arg.mapping.driverClass",
       "type": "java.lang.String",
       "description": "Maps the app `driverClass` property to the corresponding data source property."
     },
     {
-      "name": "octps.data.env.arg.mapping.url",
+      "name": "octps.data.kit.arg.mapping.url",
       "type": "java.lang.String",
       "description": "Maps the app `url` property to the corresponding data source property."
     },
     {
-      "name": "octps.data.env.arg.mapping.login",
+      "name": "octps.data.kit.arg.mapping.login",
       "type": "java.lang.String",
       "description": "Maps the app `login` property to the corresponding data source property."
     },
     {
-      "name": "octps.data.env.arg.mapping.password",
+      "name": "octps.data.kit.arg.mapping.password",
       "type": "java.lang.String",
       "description": "Maps the app `password` property to the corresponding data source property."
     }

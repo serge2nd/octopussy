@@ -4,12 +4,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.springframework.aop.framework.Advised;
-import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.interceptor.TransactionalProxy;
-import ru.serge2nd.octopussy.spi.JpaEnvironment;
+import ru.serge2nd.octopussy.spi.JpaKit;
 import ru.serge2nd.octopussy.spi.NativeQueryAdapter;
-import ru.serge2nd.octopussy.spi.PersistenceUnitProvider;
-import ru.serge2nd.octopussy.support.DataEnvironmentDefinition;
+import ru.serge2nd.octopussy.support.DataKitDefinition;
 import ru.serge2nd.octopussy.support.NativeQueryAdapterImpl;
 
 import javax.persistence.EntityManagerFactory;
@@ -30,7 +28,7 @@ import static org.springframework.aop.support.AopUtils.isJdkDynamicProxy;
 import static org.springframework.test.util.ReflectionTestUtils.getField;
 import static ru.serge2nd.collection.HardProperties.properties;
 import static ru.serge2nd.octopussy.App.*;
-import static ru.serge2nd.octopussy.support.DataEnvironmentDefinitionTest.ID;
+import static ru.serge2nd.octopussy.support.DataKitDefinitionTest.ID;
 import static ru.serge2nd.stream.MapCollectors.toMap;
 import static ru.serge2nd.stream.util.Collecting.collect;
 import static ru.serge2nd.test.Asserting.assertEach;
@@ -38,38 +36,37 @@ import static ru.serge2nd.test.match.AssertThat.assertThat;
 import static ru.serge2nd.test.match.CommonMatch.sameAs;
 
 @TestInstance(Lifecycle.PER_CLASS)
-class JpaEnvConfigNoCtxTest {
-    static final String[] PROP_NAMES = {DATA_ENV_DRIVER_CLASS, DATA_ENV_URL, DATA_ENV_LOGIN, DATA_ENV_PASSWORD, DATA_ENV_DB, DATA_ENV_ID};
+class JpaKitConfigNoCtxTest {
+    static final String[] PROP_NAMES = {DATA_KIT_DRIVER_CLASS, DATA_KIT_URL, DATA_KIT_LOGIN, DATA_KIT_PASSWORD, DATA_KIT_DB, DATA_KIT_ID};
     static final String[] DS_PROP_NAMES = copyOfRange(PROP_NAMES, 0, 4);
 
-    static final Map<String, String>       KEYS = collect(toMap(k -> k, 0), DS_PROP_NAMES);
-    static final Map<String, Object>       VALS = collect(toMap(k -> k + "_val", 0), DS_PROP_NAMES);
-    static final DataEnvironmentDefinition DEF = new DataEnvironmentDefinition(ID,
-            collect(toMap(k -> DATA_ENV_ID.equals(k) ? ID : (k + "_val"), 0), PROP_NAMES));
+    static final Map<String, String> KEYS = collect(toMap(k -> k, 0), DS_PROP_NAMES);
+    static final Map<String, Object> VALS = collect(toMap(k -> k + "_val", 0), DS_PROP_NAMES);
+    static final DataKitDefinition DEF = new DataKitDefinition(ID,
+            collect(toMap(k -> DATA_KIT_ID.equals(k) ? ID : (k + "_val"), 0), PROP_NAMES));
 
-    final PersistenceUnitProvider providerMock = mock(PersistenceUnitProvider.class);
-    final JpaEnvConfig instance = mock(JpaEnvConfig.class, withSettings()
-            .spiedInstance(new JpaEnvConfig(providerMock))
+    final PersistenceUnitProvider pUnitMock = mock(PersistenceUnitProvider.class, RETURNS_DEEP_STUBS);
+    final JpaKitConfig instance = mock(JpaKitConfig.class, withSettings()
+            .spiedInstance(new JpaKitConfig(pUnitMock))
             .defaultAnswer(RETURNS_DEEP_STUBS));
 
     @Test
-    void testNewJpaEnvironment() {
+    void testNewJpaKit() {
         // GIVEN
         DataSource ds = mock(DataSource.class);
         EntityManagerFactory emf = mock(EntityManagerFactory.class);
-        PlatformTransactionManager tm = mock(PlatformTransactionManager.class);
         // AND
-        when(providerMock.getDataSource(VALS)).thenReturn(ds);
-        when(providerMock.getEntityManagerFactory(same(ds), eq(properties(
-                DATA_ENV_DB, DATA_ENV_DB + "_val",
-                DATA_ENV_ID, ID
+        when(pUnitMock.getDataSource(VALS)).thenReturn(ds);
+        when(pUnitMock.getEntityManagerFactory(same(ds), eq(properties(
+                DATA_KIT_DB, DATA_KIT_DB + "_val",
+                DATA_KIT_ID, ID
         ).toMap()))).thenReturn(emf);
         // AND
         when(instance.getPropertyMappings()).thenReturn(KEYS);
-        when(instance.newJpaEnvironment(same(DEF))).thenCallRealMethod();
+        when(instance.newJpaKit(same(DEF))).thenCallRealMethod();
 
         // WHEN
-        JpaEnvironment result = instance.newJpaEnvironment(DEF);
+        JpaKit result = instance.newJpaKit(DEF);
 
         /* THEN */ assertThat(
         result.getDefinition()          , sameAs(DEF),
@@ -81,8 +78,9 @@ class JpaEnvConfigNoCtxTest {
     @SuppressWarnings("unchecked,ConstantConditions")
     void testGetQueryAdapter() throws Exception {
         // GIVEN
-        when(instance.dataEnvironmentService().doWith(eq(ID), same(JpaEnvironment.class), any(Function.class)))
-                .thenAnswer(i -> i.getArgument(2, Function.class).apply(instance.newJpaEnvironment(DEF)));
+        EntityManagerFactory emfMock = mock(EntityManagerFactory.class);
+        when(instance.dataKitService().doWith(eq(ID), same(EntityManagerFactory.class), any(Function.class)))
+                .thenAnswer(i -> i.getArgument(2, Function.class).apply(emfMock));
         when(instance.getQueryAdapter(ID)).thenCallRealMethod();
 
         // WHEN
@@ -99,10 +97,9 @@ class JpaEnvConfigNoCtxTest {
         assertTrue(advised.isFrozen(), "must be frozen"), () ->
         assertSame(NativeQueryAdapterImpl.class, ((Advised)result).getTargetSource().getTargetClass(), "wrong target"));
         // AND
-        Object target = advised.getTargetSource().getTarget(); Object[] th = new Object[1];
+        Object target = advised.getTargetSource().getTarget();
         assertEach("Check target", () ->
-        assertNotNull(getField(target, "jpaEnv"), "no JPA environment"), () ->
-        assertNotNull(th[0] = getField(target, "transformer"), "no result transformer"), () ->
-        assertSame(instance.resultTransformer(), getField(th[0], "delegate"), "wrong result transformer"));
+        assertSame(emfMock, getField(target, "emf"), "wrong entity manager factory"), () ->
+        assertSame(pUnitMock.getResultTransformer(), getField(target, "transformer"), "wrong result transformer"));
     }
 }

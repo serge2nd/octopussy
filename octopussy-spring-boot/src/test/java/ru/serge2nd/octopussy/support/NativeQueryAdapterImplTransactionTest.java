@@ -16,8 +16,7 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
 import ru.serge2nd.octopussy.BaseContextTest;
 import ru.serge2nd.octopussy.NoWebConfig.NoWebSpringBootTest;
-import ru.serge2nd.octopussy.spi.DataEnvironmentService;
-import ru.serge2nd.octopussy.spi.JpaEnvironment;
+import ru.serge2nd.octopussy.spi.DataKitService;
 import ru.serge2nd.octopussy.spi.NativeQueryAdapter;
 import ru.serge2nd.octopussy.spi.NativeQueryAdapterProvider;
 import ru.serge2nd.octopussy.util.QueryWithParams;
@@ -41,8 +40,8 @@ import static org.mockito.Answers.RETURNS_SELF;
 import static org.mockito.Mockito.*;
 import static org.springframework.transaction.TransactionDefinition.*;
 import static ru.serge2nd.octopussy.App.QUERY_ADAPTERS_CACHE;
-import static ru.serge2nd.octopussy.support.DataEnvironmentDefinitionTest.DEF;
-import static ru.serge2nd.octopussy.support.DataEnvironmentDefinitionTest.ID;
+import static ru.serge2nd.octopussy.support.DataKitDefinitionTest.DEF;
+import static ru.serge2nd.octopussy.support.DataKitDefinitionTest.ID;
 import static ru.serge2nd.octopussy.util.Queries.queries;
 import static ru.serge2nd.test.Asserting.assertEach;
 
@@ -53,7 +52,7 @@ class NativeQueryAdapterImplTransactionTest implements BaseContextTest {
     static final String Q = "not executed";
 
     @Autowired NativeQueryAdapterProvider adapterProvider;
-    @MockBean DataEnvironmentService envServiceMock;
+    @MockBean DataKitService serviceMock;
     @MockBean Function<EntityManagerFactory, PlatformTransactionManager> tmProviderMock;
     @Value("#{cacheManager.getCache('"+QUERY_ADAPTERS_CACHE+"')}") Cache queryAdaptersCache;
 
@@ -61,15 +60,15 @@ class NativeQueryAdapterImplTransactionTest implements BaseContextTest {
     @Mock(answer = RETURNS_DEEP_STUBS) PlatformTransactionManager tmMock;
     @Mock(answer = RETURNS_SELF) Query<Object> queryMock;
 
-    JpaEnvironmentImpl dataEnv;
+    JpaKitImpl jpaKit;
 
-    @PostConstruct void init() { dataEnv = new JpaEnvironmentImpl(DEF, null, emfMock); }
+    @PostConstruct void init() { jpaKit = new JpaKitImpl(DEF, null, emfMock); }
     @BeforeEach void setUp() { queryAdaptersCache.clear(); reset(tmProviderMock, tmMock); }
 
     @Test
     void testGetQueryAdapter() {
         // GIVEN
-        mockDataEnvService(); mockTransactionManager();
+        mockDataKitService(); mockTransactionManager();
 
         // WHEN
         NativeQueryAdapter queryAdapter = adapterProvider.getQueryAdapter(ID);
@@ -81,7 +80,7 @@ class NativeQueryAdapterImplTransactionTest implements BaseContextTest {
     @Test
     void testGetQueryAdapterCached() {
         // GIVEN
-        mockDataEnvService(); mockTransactionManager();
+        mockDataKitService(); mockTransactionManager();
         NativeQueryAdapter queryAdapterMock = mock(NativeQueryAdapter.class);
         queryAdaptersCache.put(ID, queryAdapterMock);
 
@@ -129,7 +128,7 @@ class NativeQueryAdapterImplTransactionTest implements BaseContextTest {
 
     @SuppressWarnings("deprecation")
     void mockQuery(Function<Query<?>, Object> toMock, Object toReturn) {
-        mockDataEnvService();
+        mockDataKitService();
         mockTransactionManager();
 
         when(emfMock.isOpen()).thenReturn(true);
@@ -141,9 +140,9 @@ class NativeQueryAdapterImplTransactionTest implements BaseContextTest {
     }
 
     @SuppressWarnings("unchecked")
-    void mockDataEnvService() {
-        when(envServiceMock.doWith(eq(ID), same(JpaEnvironment.class), any(Function.class)))
-                .thenAnswer(i -> i.getArgument(2, Function.class).apply(dataEnv));
+    void mockDataKitService() {
+        when(serviceMock.doWith(eq(ID), same(EntityManagerFactory.class), any(Function.class)))
+                .thenAnswer(i -> i.getArgument(2, Function.class).apply(emfMock));
     }
     void mockTransactionManager() { when(tmProviderMock.apply(same(emfMock))).thenReturn(tmMock); }
 

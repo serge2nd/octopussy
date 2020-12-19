@@ -3,18 +3,18 @@ import static org.springframework.cloud.contract.spec.internal.HttpMethods.GET
 import static org.springframework.http.HttpStatus.NOT_FOUND
 
 Contract.make {
-    description "must provide error info if data environment not found"
+    description "must provide error info if data kit not found"
     request {
         method GET
-        url '/dataEnvironments/db3000'
+        url '/dataKits/db3000'
     }
     response {
         status NOT_FOUND.value()
         body(
-            url    : regex('.*/dataEnvironments/db3000'),
+            url    : regex('.*/dataKits/db3000'),
             method : GET,
             status : "${NOT_FOUND.value()} ${NOT_FOUND.reasonPhrase}" as String,
-            code   : 'DATA_ENV_NOT_FOUND:db3000',
+            code   : 'DATA_KIT_NOT_FOUND:db3000',
             messages: ['err0']
         )
         bodyMatchers {

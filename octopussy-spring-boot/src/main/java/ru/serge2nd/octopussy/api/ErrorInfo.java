@@ -4,7 +4,7 @@ import lombok.Builder;
 import lombok.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ServerWebInputException;
-import ru.serge2nd.octopussy.service.ex.DataEnvironmentException;
+import ru.serge2nd.octopussy.service.ex.DataKitException;
 
 import java.util.AbstractMap.SimpleEntry;
 import java.util.List;
@@ -43,10 +43,10 @@ public class ErrorInfo {
 
     @SuppressWarnings("ConstantConditions")
     static final List<Entry<Predicate<Throwable>, Function<Throwable, String>>> ERROR_CODES = collect(toList(UNMODIFIABLE),
-        errorCode(instanceOf(DataEnvironmentException.NotFound.class), e -> errorCode("DATA_ENV_NOT_FOUND", e.getEnvId())),
-        errorCode(instanceOf(DataEnvironmentException.Exists.class)  , e -> errorCode("DATA_ENV_EXISTS", e.getEnvId())),
-        errorCode(instanceOf(DataEnvironmentException.Closed.class)  , e -> errorCode("DATA_ENV_CLOSED", e.getEnvId())),
-        errorCode(instanceOf(ServerWebInputException.class)          , e -> errorCode("NOT_VALID", e.getReason().substring(0, e.getReason().indexOf(PROP_DELIM))))
+        errorCode(instanceOf(DataKitException.NotFound.class), e -> errorCode("DATA_KIT_NOT_FOUND", e.getKitId())),
+        errorCode(instanceOf(DataKitException.Exists.class)  , e -> errorCode("DATA_KIT_EXISTS", e.getKitId())),
+        errorCode(instanceOf(DataKitException.Closed.class)  , e -> errorCode("DATA_KIT_CLOSED", e.getKitId())),
+        errorCode(instanceOf(ServerWebInputException.class)  , e -> errorCode("NOT_VALID", e.getReason().substring(0, e.getReason().indexOf(PROP_DELIM))))
     );
 
     @SuppressWarnings("unchecked,rawtypes")

@@ -15,8 +15,8 @@ import static org.springframework.context.annotation.FilterType.ASSIGNABLE_TYPE;
 @Configuration
 @EnableAutoConfiguration
 @ComponentScan(value = {
-        "ru.serge2nd.octopussy.config"},
-        excludeFilters = @ComponentScan.Filter(type = ASSIGNABLE_TYPE, value = WebConfig.class))
+    "ru.serge2nd.octopussy.config"},
+    excludeFilters = @ComponentScan.Filter(type = ASSIGNABLE_TYPE, value = WebConfig.class))
 public class NoWebConfig {
 
     @Retention(RetentionPolicy.RUNTIME)

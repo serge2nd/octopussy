@@ -4,7 +4,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
 import ru.serge2nd.collection.Unmodifiable;
-import ru.serge2nd.octopussy.support.ToListResultTransformer.LobFetchFailedException;
+import ru.serge2nd.octopussy.support.JpaResultToListTransformer.LobFetchFailedException;
 
 import java.sql.*;
 import java.time.LocalDate;
@@ -24,8 +24,8 @@ import static ru.serge2nd.test.match.CommonMatch.equalTo;
 import static ru.serge2nd.test.match.CommonMatch.fails;
 
 @TestInstance(Lifecycle.PER_CLASS)
-class ToListResultTransformerTest {
-    static final ToListResultTransformer INSTANCE = new ToListResultTransformer();
+class JpaResultToListTransformerTest {
+    static final JpaResultToListTransformer INSTANCE = new JpaResultToListTransformer();
 
     @Test void testTransformTuple() throws SQLException {
         // GIVEN

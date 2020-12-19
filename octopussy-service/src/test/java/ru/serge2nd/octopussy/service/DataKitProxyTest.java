@@ -8,10 +8,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import ru.serge2nd.octopussy.service.ex.DataEnvironmentException;
-import ru.serge2nd.octopussy.spi.DataEnvironment;
-import ru.serge2nd.octopussy.spi.DataEnvironmentService;
-import ru.serge2nd.octopussy.support.DataEnvironmentDefinition;
+import ru.serge2nd.octopussy.service.ex.DataKitException;
+import ru.serge2nd.octopussy.spi.DataKit;
+import ru.serge2nd.octopussy.spi.DataKitService;
+import ru.serge2nd.octopussy.support.DataKitDefinition;
 
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -23,28 +23,29 @@ import static org.mockito.Answers.RETURNS_DEEP_STUBS;
 import static org.mockito.Mockito.*;
 import static ru.serge2nd.octopussy.service.Matchers.isClosed;
 import static ru.serge2nd.octopussy.service.Matchers.isOpen;
-import static ru.serge2nd.octopussy.support.DataEnvironmentDefinitionTest.DEF;
-import static ru.serge2nd.octopussy.support.DataEnvironmentDefinitionTest.ID;
+import static ru.serge2nd.octopussy.support.DataKitDefinitionTest.DEF;
+import static ru.serge2nd.octopussy.support.DataKitDefinitionTest.ID;
 import static ru.serge2nd.test.match.AssertThat.assertThat;
 import static ru.serge2nd.test.match.CommonMatch.fails;
 import static ru.serge2nd.test.match.CommonMatch.illegalState;
 
 @ExtendWith(MockitoExtension.class)
 @TestInstance(Lifecycle.PER_CLASS)
-public class DataEnvironmentProxyTest {
-    @Mock                              DataEnvironmentProxy dataEnvMock;
-    @Mock                              DataEnvironmentService serviceMock;
-    @Mock(answer = RETURNS_DEEP_STUBS) DataEnvFactory factoryMock;
-    DataEnvironmentProxy proxy;
+public class DataKitProxyTest {
+    @Mock                              DataKitProxy dataKitMock;
+    @Mock                              DataKitService serviceMock;
+    @Mock(answer = RETURNS_DEEP_STUBS) DataKitFactory factoryMock;
 
-    @BeforeEach void setUp() { proxy = new DataEnvironmentProxy(DEF, serviceMock, factoryMock); }
+    DataKitProxy proxy;
+
+    @BeforeEach void setUp() { proxy = new DataKitProxy(DEF, serviceMock, factoryMock); }
 
     @Test void testGetTargetCheckOpen() {
         proxy.closed = true;
 
         assertThat(
-        proxy::getTarget, fails(DataEnvironmentException.Closed.class),
-        proxy           , noTarget()                                  , () ->
+        proxy::getTarget, fails(DataKitException.Closed.class),
+        proxy           , noTarget()                          , () ->
         verifyNoInteractions(factoryMock));
     }
 
@@ -52,12 +53,12 @@ public class DataEnvironmentProxyTest {
         enableWorker(() -> proxy.closed = true, proxy);
 
         assertThat(
-        proxy::getTarget, fails(DataEnvironmentException.Closed.class),
+        proxy::getTarget, fails(DataKitException.Closed.class),
         proxy           , noTarget());
     }
 
     @Test void testGetTargetCheckProxyActive() {
-        enableWorker(() -> {}, dataEnvMock);
+        enableWorker(() -> {}, dataKitMock);
 
         assertThat(
         proxy::getTarget, illegalState(),
@@ -66,27 +67,27 @@ public class DataEnvironmentProxyTest {
     }
 
     @Test void testGetTargetNotNull() {
-        proxy.target = dataEnvMock;
-        assertThat(proxy, extractsTarget(dataEnvMock), isOpen());
+        proxy.target = dataKitMock;
+        assertThat(proxy, extractsTarget(dataKitMock), isOpen());
     }
 
     @Test void testGetTargetNull() {
         enableWorker(() -> {}, proxy);
-        when(factoryMock.apply(same(proxy.getDefinition()))).thenReturn(dataEnvMock);
-        assertThat(proxy, extractsTarget(dataEnvMock), isOpen());
+        when(factoryMock.apply(same(proxy.getDefinition()))).thenReturn(dataKitMock);
+        assertThat(proxy, extractsTarget(dataKitMock), isOpen());
     }
 
     @Test void testClose() {
         // GIVEN
         enableWorker(() -> {}, proxy);
-        proxy.target = dataEnvMock;
+        proxy.target = dataKitMock;
 
         // WHEN
         proxy.close();
 
-        /* THEN */
+        // THEN
         assertThat(proxy, isClosed(), () ->
-        verify(dataEnvMock, times(1)).close());
+        verify(dataKitMock, times(1)).close());
     }
 
     @Test void testCloseNullTarget() {
@@ -101,18 +102,18 @@ public class DataEnvironmentProxyTest {
     }
 
     @Test void testCloseCheckProxyActive() {
-        enableWorker(() -> {}, dataEnvMock);
-        proxy.target = dataEnvMock;
+        enableWorker(() -> {}, dataKitMock);
+        proxy.target = dataKitMock;
 
         assertThat(
         proxy::close, illegalState(),
         proxy       , isOpen(), () ->
-        verifyNoInteractions(dataEnvMock));
+        verifyNoInteractions(dataKitMock));
     }
 
     @Test void testAlreadyClosed() {
         // GIVEN
-        proxy.target = dataEnvMock;
+        proxy.target = dataKitMock;
         proxy.closed = true;
 
         // WHEN
@@ -120,31 +121,31 @@ public class DataEnvironmentProxyTest {
 
         // THEN
         assertThat(proxy, isClosed(), () ->
-        verifyNoInteractions(dataEnvMock, factoryMock));
+        verifyNoInteractions(dataKitMock, factoryMock));
     }
 
     @Test void testClosedInMiddle() {
         // GIVEN
         enableWorker(() -> proxy.closed = true, proxy);
-        proxy.target = dataEnvMock;
+        proxy.target = dataKitMock;
 
         // WHEN
         proxy.close();
 
         // THEN
         assertThat(proxy, isClosed(), () ->
-        verifyNoInteractions(dataEnvMock));
+        verifyNoInteractions(dataKitMock));
     }
 
     @Test void testUnwrapSelf() {
-        assertSame(proxy, proxy.unwrap(DataEnvironmentProxy.class), "expected proxy itself");
+        assertSame(proxy, proxy.unwrap(DataKitProxy.class), "expected proxy itself");
     }
 
     @Test void testUnwrapTarget() {
         // GIVEN
         Double expected = Math.PI;
-        proxy.target = dataEnvMock;
-        when(dataEnvMock.unwrap(expected.getClass())).thenAnswer($->expected);
+        proxy.target = dataKitMock;
+        when(dataKitMock.unwrap(expected.getClass())).thenAnswer($->expected);
 
         // WHEN
         Double result = proxy.unwrap(expected.getClass());
@@ -158,24 +159,24 @@ public class DataEnvironmentProxyTest {
         RuntimeException expected = new ArrayStoreException();
         mockWorker(i -> {throw expected;});
 
-        /* THEN */
-        assertThat(()->proxy.unwrap(DataEnvironment.class), fails(expected), () ->
-        verifyNoInteractions(dataEnvMock));
+        // THEN
+        assertThat(()->proxy.unwrap(DataKit.class), fails(expected), () ->
+        verifyNoInteractions(dataKitMock));
     }
 
     @SuppressWarnings("unchecked")
     void mockWorker(Consumer<InvocationOnMock> invocationConsumer) {
-        when(serviceMock.doWith(eq(ID), same(DataEnvironmentProxy.class), any(Function.class)))
+        when(serviceMock.doWith(eq(ID), same(DataKitProxy.class), any(Function.class)))
         .thenAnswer(i -> {invocationConsumer.accept(i); return null;});
     }
     @SuppressWarnings("unchecked")
-    void enableWorker(Runnable pre, DataEnvironment arg) {
-        when(serviceMock.doWith(eq(ID), same(DataEnvironmentProxy.class), any(Function.class)))
+    void enableWorker(Runnable pre, DataKit arg) {
+        when(serviceMock.doWith(eq(ID), same(DataKitProxy.class), any(Function.class)))
         .thenAnswer(i -> {
             pre.run();
             return i.getArgument(2, Function.class).apply(arg);
         });
     }
 
-    interface DataEnvFactory extends Function<DataEnvironmentDefinition, DataEnvironment> {}
+    interface DataKitFactory extends Function<DataKitDefinition, DataKit> {}
 }

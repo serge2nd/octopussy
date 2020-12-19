@@ -28,10 +28,10 @@ public class QueryRq {
     @SuppressWarnings("unchecked,rawtypes")
     public QueryWithParams toQuery(Map<String, Object> global) {
         return new QueryWithParams(query,
-                params == null || params.isEmpty()
-                        ? global :
-                global == null || global.isEmpty()
-                        ? params
-                        : new HashMap(global){{putAll(params);}});
+            params == null || params.isEmpty()
+                ? global :
+            global == null || global.isEmpty()
+                ? params
+                : new HashMap(global){{putAll(params);}});
     }
 }

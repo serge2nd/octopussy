@@ -6,13 +6,13 @@ Contract.make {
     description "must provide error info if query request not valid"
     request {
         method POST
-        url "/dataEnvironments/db1000/query"
+        url "/dataKits/db1000/query"
         body [:]
     }
     response {
         status BAD_REQUEST.value()
         body(
-            url    : regex('.*/dataEnvironments/db1000/query'),
+            url    : regex('.*/dataKits/db1000/query'),
             method : POST,
             status : "${BAD_REQUEST.value()} ${BAD_REQUEST.reasonPhrase}" as String,
             code   : 'NOT_VALID:queries',

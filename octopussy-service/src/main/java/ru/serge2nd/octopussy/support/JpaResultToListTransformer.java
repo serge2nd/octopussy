@@ -3,13 +3,13 @@ package ru.serge2nd.octopussy.support;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import ru.serge2nd.collection.Unmodifiable;
-import ru.serge2nd.octopussy.spi.ResultTransformer;
+import ru.serge2nd.octopussy.spi.JpaResultTransformer;
 
 import java.sql.*;
 import java.util.List;
 
 @Slf4j
-public class ToListResultTransformer implements ResultTransformer {
+public class JpaResultToListTransformer implements JpaResultTransformer {
 
     @Override
     public Object transform(@NonNull Object[] tuple, String[] aliases) {
@@ -69,8 +69,6 @@ public class ToListResultTransformer implements ResultTransformer {
     }
 
     static class LobFetchFailedException extends RuntimeException {
-        LobFetchFailedException(Class<?> t, Throwable cause) {
-            super("cannot fetch " + t.getName(), cause);
-        }
+        LobFetchFailedException(Class<?> t, Throwable cause) { super("cannot fetch " + t.getName(), cause); }
     }
 }

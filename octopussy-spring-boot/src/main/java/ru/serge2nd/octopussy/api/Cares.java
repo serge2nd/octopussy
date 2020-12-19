@@ -4,7 +4,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.util.StringUtils;
 import org.springframework.web.servlet.function.ServerRequest;
 import org.springframework.web.servlet.function.ServerResponse;
-import ru.serge2nd.octopussy.support.DataEnvironmentDefinition;
+import ru.serge2nd.octopussy.support.DataKitDefinition;
 
 import javax.servlet.http.HttpServletRequest;
 import java.net.URI;
@@ -19,9 +19,9 @@ import static ru.serge2nd.stream.util.Collecting.collect;
 class Cares {
     private Cares() { throw errNotInstantiable(lookup()); }
 
-    static String dataEnvId(ServerRequest rq) { return rq.pathVariable(Router.P_ENV_ID); }
+    static String dataKitId(ServerRequest rq) { return rq.pathVariable(Router.P_KIT_ID); }
 
-    static URI dataEnvUri(DataEnvironmentDefinition d) { return URI.create(Router.DATA_ENVS + "/" + d.getEnvId()); }
+    static URI dataKitUri(DataKitDefinition d) { return URI.create(Router.DATA_KITS + "/" + d.getKitId()); }
 
     static ServerResponse handle(ServerRequest sr, HttpStatus status, Throwable e) {
         HttpServletRequest rq = sr.servletRequest();

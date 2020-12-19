@@ -4,24 +4,23 @@ import lombok.RequiredArgsConstructor;
 import org.hibernate.query.Query;
 import org.hibernate.transform.ResultTransformer;
 import org.springframework.transaction.annotation.Transactional;
-import ru.serge2nd.octopussy.spi.JpaEnvironment;
 import ru.serge2nd.octopussy.spi.NativeQueryAdapter;
 import ru.serge2nd.octopussy.util.Queries;
 
 import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
 import static javax.persistence.SynchronizationType.SYNCHRONIZED;
 import static org.springframework.transaction.annotation.Propagation.SUPPORTS;
-import static ru.serge2nd.octopussy.service.ex.DataEnvironmentException.errDataEnvClosed;
 import static ru.serge2nd.stream.ArrayCollectors.mapToInts;
 import static ru.serge2nd.stream.util.Collecting.collect;
 
 @RequiredArgsConstructor
 public class NativeQueryAdapterImpl implements NativeQueryAdapter {
-    private final JpaEnvironment jpaEnv;
+    private final EntityManagerFactory emf;
     private final ResultTransformer transformer;
 
     @Transactional(propagation = SUPPORTS, readOnly = true)
@@ -32,14 +31,12 @@ public class NativeQueryAdapterImpl implements NativeQueryAdapter {
     @Transactional
     public int[] executeUpdate(Queries queries) {
         return execute(em -> collect(queries,
-                mapToInts(p -> nativeQuery(p.getQuery(), p.getParams(), em)
-                .executeUpdate(), queries.size())));
+            mapToInts(p -> nativeQuery(p.getQuery(), p.getParams(), em).executeUpdate(), queries.size())));
     }
 
     private <R> R execute(Function<EntityManager, R> op) {
         EntityManager em = null; try {
-            if (jpaEnv.isClosed()) throw errDataEnvClosed(jpaEnv.getDefinition().getEnvId());
-            em = jpaEnv.getEntityManagerFactory().createEntityManager(SYNCHRONIZED);
+            em = emf.createEntityManager(SYNCHRONIZED);
             return op.apply(em);
         } finally {
             if (em != null) em.close();

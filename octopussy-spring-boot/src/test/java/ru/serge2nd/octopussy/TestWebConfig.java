@@ -11,7 +11,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 import ru.serge2nd.octopussy.config.WebConfig;
-import ru.serge2nd.octopussy.spi.DataEnvironmentService;
+import ru.serge2nd.octopussy.spi.DataKitService;
 import ru.serge2nd.octopussy.spi.NativeQueryAdapterProvider;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -22,9 +22,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 @Import(WebConfig.class)
 @ComponentScan(basePackages = "ru.serge2nd.octopussy.api")
 @MockBean(classes = {
-        DataEnvironmentService.class,
-        NativeQueryAdapterProvider.class},
-        answer = RETURNS_DEEP_STUBS)
+    DataKitService.class,
+    NativeQueryAdapterProvider.class},
+    answer = RETURNS_DEEP_STUBS)
 public class TestWebConfig {
     @Bean
     MockMvc mockMvc(WebApplicationContext ctx) {
