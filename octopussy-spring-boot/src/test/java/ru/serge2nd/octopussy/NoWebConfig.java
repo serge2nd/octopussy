@@ -3,6 +3,7 @@ package ru.serge2nd.octopussy;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.ComponentScan.Filter;
 import org.springframework.context.annotation.Configuration;
 import ru.serge2nd.octopussy.config.WebConfig;
 
@@ -14,9 +15,9 @@ import static org.springframework.context.annotation.FilterType.ASSIGNABLE_TYPE;
 
 @Configuration
 @EnableAutoConfiguration
-@ComponentScan(value = {
-    "ru.serge2nd.octopussy.config"},
-    excludeFilters = @ComponentScan.Filter(type = ASSIGNABLE_TYPE, value = WebConfig.class))
+@ComponentScan(lazyInit = true,
+    basePackages = "ru.serge2nd.octopussy.config",
+    excludeFilters = @Filter(type = ASSIGNABLE_TYPE, value = WebConfig.class))
 public class NoWebConfig {
 
     @Retention(RetentionPolicy.RUNTIME)

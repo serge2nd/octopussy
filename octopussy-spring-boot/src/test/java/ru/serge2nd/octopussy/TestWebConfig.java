@@ -20,7 +20,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 
 @Configuration
 @Import(WebConfig.class)
-@ComponentScan(basePackages = "ru.serge2nd.octopussy.api")
+@ComponentScan(basePackages = "ru.serge2nd.octopussy.api", lazyInit = true)
 @MockBean(classes = {
     DataKitService.class,
     NativeQueryAdapterProvider.class},
