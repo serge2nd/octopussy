@@ -1,8 +1,8 @@
 ---
 name: JDK8
 on:
-  push:         {branches: [ develop ]}
-  pull_request: {branches: [ develop ]}
+  push:         {branches: [develop]}
+  pull_request: {branches: [develop]}
 
 jobs:
   build:
@@ -14,6 +14,7 @@ jobs:
     - uses: actions/setup-java@v1
       with: {java-version: 1.8}
 
+    - run: java -version
     - run: cp -f .ci.settings.xml $HOME/.m2/settings.xml
     - run: ./mvnw -B install org.eluder.coveralls:coveralls-maven-plugin:4.3.0:report -DrepoToken=$COVERALLS_TOKEN
 ...
