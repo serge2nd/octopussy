@@ -31,30 +31,33 @@
                 <artifactId>hibernate-validator</artifactId>
                 <version>${hibernate-validator.version}</version>
             </dependency>
+
             <dependency>
-                <groupId>org.junit.jupiter</groupId>
-                <artifactId>junit-jupiter-engine</artifactId>
-                <version>${junit-jupiter.version}</version>
+                <groupId>org.codehaus.groovy</groupId><artifactId>groovy</artifactId><classifier>indy</classifier><version>${groovy.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.junit.jupiter</groupId>
-                <artifactId>junit-jupiter-api</artifactId>
-                <version>${junit-jupiter.version}</version>
+                <groupId>org.codehaus.groovy</groupId><artifactId>groovy-json</artifactId><classifier>indy</classifier><version>${groovy.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.junit.jupiter</groupId>
-                <artifactId>junit-jupiter-params</artifactId>
-                <version>${junit-jupiter.version}</version>
+                <groupId>org.codehaus.groovy</groupId><artifactId>groovy-nio</artifactId><classifier>indy</classifier><version>${groovy.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.mockito</groupId>
-                <artifactId>mockito-core</artifactId>
-                <version>${mockito.version}</version>
+                <groupId>org.codehaus.groovy</groupId><artifactId>groovy-xml</artifactId><classifier>indy</classifier><version>${groovy.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.mockito</groupId>
-                <artifactId>mockito-junit-jupiter</artifactId>
-                <version>${mockito.version}</version>
+                <groupId>org.junit.jupiter</groupId><artifactId>junit-jupiter-engine</artifactId><version>${junit-jupiter.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.junit.jupiter</groupId><artifactId>junit-jupiter-api</artifactId><version>${junit-jupiter.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.junit.jupiter</groupId><artifactId>junit-jupiter-params</artifactId><version>${junit-jupiter.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.mockito</groupId><artifactId>mockito-core</artifactId><version>${mockito.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.mockito</groupId><artifactId>mockito-junit-jupiter</artifactId><version>${mockito.version}</version>
             </dependency>
 
             <dependency>
@@ -79,31 +82,10 @@
             <plugin>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>${compiler-plugin.version}</version>
-                <configuration>
-                    <!-- To compile on different JDK --> <!--
-                    <fork>true</fork>
-                    <verbose>true</verbose>
-                    <executable>${env.JDK_HOME}/bin/javac</executable>
-                    <compilerVersion>${java.version}</compilerVersion>-->
-                </configuration>
             </plugin>
             <plugin>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>${surefire-plugin.version}</version>
-            </plugin>
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>animal-sniffer-maven-plugin</artifactId>
-                <version>${sniffer-plugin.version}</version>
-                <configuration><signature>
-                    <groupId>org.codehaus.mojo.signature</groupId>
-                    <artifactId>${java.signature}</artifactId>
-                    <version>1.0</version>
-                </signature></configuration>
-                <executions><execution>
-                    <phase>test</phase>
-                    <goals><goal>check</goal></goals>
-                </execution></executions>
             </plugin>
             <plugin>
                 <groupId>org.jacoco</groupId>
@@ -135,6 +117,7 @@
         <hibernate.version>5.4.25.Final</hibernate.version>
         <hibernate-validator.version>6.1.6.Final</hibernate-validator.version>
 
+        <groovy.version>2.5.14</groovy.version>
         <junit-jupiter.version>5.7.0</junit-jupiter.version>
         <mockito.version>3.6.28</mockito.version>
 

@@ -36,10 +36,10 @@ import static ru.serge2nd.test.util.CustomMatchers.equalToJson;
 @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
 class QueriesRqTest implements BaseContextTest {
     static final String J = "query_rq_tmpl.json";
-    static final String Q = "not executed";
+    static final String Q = "select smth from smwh";
     static final Integer I = Integer.MAX_VALUE;
     static final String K = I.toString();
-    static final Double V = 0.5;
+    static final Double V = 3.14159;
     static final QueryRq RQ = query(Q, K, V);
     static final QueriesRq RQS = queryRqs(format("%f", V), I, RQ);
 

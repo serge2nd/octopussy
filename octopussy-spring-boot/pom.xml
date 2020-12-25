@@ -12,9 +12,15 @@
     <packaging>jar</packaging>
 
     <dependencies>
+        <!--region MAIN dependencies -->
         <dependency>
-            <groupId>ru.serge2nd</groupId>
+            <groupId>${project.groupId}</groupId>
             <artifactId>octopussy-service</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>octopussy-cdc</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
@@ -38,7 +44,22 @@
             <artifactId>lombok</artifactId>
             <scope>provided</scope>
         </dependency>
+        <!--endregion-->
 
+        <!--region TEST dependencies -->
+        <dependency>
+            <groupId>org.codehaus.groovy</groupId><artifactId>groovy</artifactId><classifier>indy</classifier><scope>test</scope>
+            <exclusions><exclusion><groupId>org.codehaus.groovy</groupId><artifactId>*</artifactId></exclusion></exclusions>
+        </dependency><dependency>
+            <groupId>org.codehaus.groovy</groupId><artifactId>groovy-json</artifactId><classifier>indy</classifier><scope>test</scope>
+            <exclusions><exclusion><groupId>org.codehaus.groovy</groupId><artifactId>*</artifactId></exclusion></exclusions>
+        </dependency><dependency>
+            <groupId>org.codehaus.groovy</groupId><artifactId>groovy-nio</artifactId><classifier>indy</classifier><scope>test</scope>
+            <exclusions><exclusion><groupId>org.codehaus.groovy</groupId><artifactId>*</artifactId></exclusion></exclusions>
+        </dependency><dependency>
+            <groupId>org.codehaus.groovy</groupId><artifactId>groovy-xml</artifactId><classifier>indy</classifier><scope>test</scope>
+            <exclusions><exclusion><groupId>org.codehaus.groovy</groupId><artifactId>*</artifactId></exclusion></exclusions>
+        </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
@@ -52,6 +73,7 @@
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-contract-verifier</artifactId>
             <scope>test</scope>
+            <exclusions><exclusion><groupId>org.codehaus.groovy</groupId><artifactId>*</artifactId></exclusion></exclusions>
         </dependency>
         <dependency>
             <groupId>com.h2database</groupId>
@@ -65,40 +87,52 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>ru.serge2nd</groupId>
+            <groupId>${project.groupId}</groupId>
             <artifactId>octopussy-service</artifactId>
             <version>${project.version}</version>
-            <type>test-jar</type>
+            <classifier>tests</classifier>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>octopussy-cdc</artifactId>
+            <version>${project.version}</version>
+            <classifier>tests</classifier>
+            <scope>test</scope>
+        </dependency>
+        <!--endregion-->
     </dependencies>
 
     <build>
         <plugins>
             <plugin>
-                <groupId>org.springframework.cloud</groupId>
-                <artifactId>spring-cloud-contract-maven-plugin</artifactId>
-                <version>${spring-cloud-contract.version}</version>
-                <extensions>true</extensions>
-                <configuration>
-                    <testFramework>JUNIT5</testFramework>
-                    <baseClassForTests>ru.serge2nd.octopussy.api.ContractVerifierBaseTest</baseClassForTests>
-                </configuration>
-            </plugin>
-            <plugin>
-                <artifactId>maven-source-plugin</artifactId>
-                <version>${source-plugin.version}</version>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>animal-sniffer-maven-plugin</artifactId>
+                <version>${sniffer-plugin.version}</version>
+                <configuration><signature>
+                    <groupId>org.codehaus.mojo.signature</groupId>
+                    <artifactId>${java.signature}</artifactId>
+                    <version>1.0</version>
+                </signature></configuration>
                 <executions><execution>
-                    <goals><goal>jar</goal></goals>
-                    <configuration>
-                        <excludeResources>true</excludeResources>
-                    </configuration>
+                    <goals><goal>check</goal></goals>
                 </execution></executions>
             </plugin>
+
+            <!--region Grab dependencies -->
             <plugin>
                 <artifactId>maven-dependency-plugin</artifactId>
                 <version>${dependency-plugin.version}</version>
-                <executions><execution>
+                <executions><execution><id>0</id>
+                    <phase>process-resources</phase>
+                    <goals><goal>unpack-dependencies</goal></goals>
+                    <configuration>
+                        <includeArtifactIds>octopussy-cdc</includeArtifactIds>
+                        <includeClassifiers>tests</includeClassifiers>
+                        <includes>contracts/*</includes>
+                        <outputDirectory>${project.build.directory}</outputDirectory>
+                    </configuration>
+                </execution><execution>
                     <phase>package</phase>
                     <goals><goal>copy-dependencies</goal></goals>
                     <configuration>
@@ -108,6 +142,29 @@
                     </configuration>
                 </execution></executions>
             </plugin>
+            <!--endregion-->
+
+            <!--region Spring CDC launcher -->
+            <plugin>
+                <groupId>org.springframework.cloud</groupId>
+                <artifactId>spring-cloud-contract-maven-plugin</artifactId>
+                <version>${spring-cloud-contract.version}</version>
+                <extensions>true</extensions>
+                <configuration>
+                    <testFramework>JUNIT5</testFramework>
+                    <baseClassForTests>ru.serge2nd.octopussy.api.CdcBaseTest</baseClassForTests>
+                    <imports>org.junit.platform.commons.util.StringUtils</imports>
+                    <contractsDirectory>${project.build.directory}/contracts</contractsDirectory>
+                </configuration>
+                <dependencies><dependency>
+                    <groupId>${project.groupId}</groupId><artifactId>octopussy-cdc</artifactId><version>${project.version}</version>
+                </dependency><dependency>
+                    <groupId>${project.groupId}</groupId><artifactId>octopussy-cdc</artifactId><version>${project.version}</version><classifier>tests</classifier>
+                </dependency></dependencies>
+            </plugin>
+            <!--endregion-->
+
+            <!--region Assembly -->
             <plugin>
                 <artifactId>maven-assembly-plugin</artifactId>
                 <version>${assembly-plugin.version}</version>
@@ -128,6 +185,16 @@
                 </execution></executions>
             </plugin>
             <plugin>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>${source-plugin.version}</version>
+                <executions><execution>
+                    <goals><goal>jar</goal></goals>
+                    <configuration>
+                        <excludeResources>true</excludeResources>
+                    </configuration>
+                </execution></executions>
+            </plugin>
+            <plugin>
                 <groupId>com.spotify</groupId>
                 <artifactId>dockerfile-maven-plugin</artifactId>
                 <version>${dockerfile-plugin.version}</version>
@@ -137,6 +204,7 @@
                     <tag>${project.version}</tag>
                 </configuration>
             </plugin>
+            <!--endregion-->
         </plugins>
 
         <resources><resource>

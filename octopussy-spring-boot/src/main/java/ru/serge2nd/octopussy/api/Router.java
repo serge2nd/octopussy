@@ -12,6 +12,7 @@ import org.springframework.web.server.ServerWebInputException;
 import org.springframework.web.servlet.function.RouterFunction;
 import org.springframework.web.servlet.function.ServerRequest;
 import org.springframework.web.servlet.function.ServerResponse;
+import ru.serge2nd.octopussy.AppContracts;
 import ru.serge2nd.octopussy.service.ex.DataKitException;
 import ru.serge2nd.octopussy.spi.DataKit;
 import ru.serge2nd.octopussy.spi.DataKitService;
@@ -38,10 +39,12 @@ import static ru.serge2nd.stream.util.Collecting.collect;
 @RequiredArgsConstructor
 public class Router {
     static final String P_KIT_ID = "kitId";
-    static final String DATA_KITS = "/dataKits";
-    static final String DATA_KIT_BY_ID  = format("%s/{%s}", DATA_KITS, P_KIT_ID);
-    static final String DATA_KIT_QUERY  = format("%s/{%s}/query", DATA_KITS, P_KIT_ID);
-    static final String DATA_KIT_UPDATE = format("%s/{%s}/update", DATA_KITS, P_KIT_ID);
+
+    public static final String DATA_KITS       = "/" + AppContracts.DATA_KITS;
+    public static final String DATA_KIT_BY_ID  = format("%s/{%s}", DATA_KITS, P_KIT_ID);
+
+    public static final String DATA_KIT_QUERY  = format("%s/{%s}/%s", DATA_KITS, P_KIT_ID, AppContracts.QUERY);
+    public static final String DATA_KIT_UPDATE = format("%s/{%s}/%s", DATA_KITS, P_KIT_ID, AppContracts.UPDATE);
 
     private final DataKitService dataKitService;
     private final NativeQueryAdapterProvider provider;

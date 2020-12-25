@@ -16,5 +16,6 @@ jobs:
 
     - run: java -version
     - run: cp -f .ci.settings.xml $HOME/.m2/settings.xml
+    - run: ./mvnw -B -f octopussy-cdc/pom.xml install
     - run: ./mvnw -B install
 ...

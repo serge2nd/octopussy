@@ -12,6 +12,7 @@
     <packaging>jar</packaging>
 
     <dependencies>
+        <!--region MAIN dependencies -->
         <dependency>
             <groupId>ru.serge2nd</groupId>
             <artifactId>bunch-of-crafts</artifactId>
@@ -39,7 +40,9 @@
             <artifactId>lombok</artifactId>
             <scope>provided</scope>
         </dependency>
+        <!--endregion-->
 
+        <!--region TEST dependencies -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-engine</artifactId>
@@ -61,15 +64,28 @@
             <version>${test-guns.version}</version>
             <scope>test</scope>
         </dependency>
+        <!--endregion-->
     </dependencies>
 
     <build>
         <plugins>
             <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>animal-sniffer-maven-plugin</artifactId>
+                <version>${sniffer-plugin.version}</version>
+                <configuration><signature>
+                    <groupId>org.codehaus.mojo.signature</groupId>
+                    <artifactId>${java.signature}</artifactId>
+                    <version>1.0</version>
+                </signature></configuration>
+                <executions><execution>
+                    <goals><goal>check</goal></goals>
+                </execution></executions>
+            </plugin>
+            <plugin>
                 <artifactId>maven-jar-plugin</artifactId>
                 <version>${jar-plugin.version}</version>
                 <executions><execution>
-                    <phase>test-compile</phase>
                     <goals><goal>test-jar</goal></goals>
                 </execution></executions>
             </plugin>
