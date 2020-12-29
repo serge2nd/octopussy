@@ -7,7 +7,7 @@ import org.springframework.test.context.ActiveProfiles;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-@ActiveProfiles("dev,test")
+@ActiveProfiles({"dev","test"})
 public interface BaseContextTest {
     ThreadLocal<ApplicationContext> applicationContext = new ThreadLocal<>();
 

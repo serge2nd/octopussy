@@ -12,10 +12,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.cache.Cache;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.ContextHierarchy;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
 import ru.serge2nd.octopussy.BaseContextTest;
-import ru.serge2nd.octopussy.NoWebConfig.NoWebSpringBootTest;
+import ru.serge2nd.octopussy.SpringBootSoftTest;
+import ru.serge2nd.octopussy.TestCommonConfig;
 import ru.serge2nd.octopussy.spi.DataKitService;
 import ru.serge2nd.octopussy.spi.NativeQueryAdapter;
 import ru.serge2nd.octopussy.spi.NativeQueryAdapterProvider;
@@ -45,7 +48,10 @@ import static ru.serge2nd.octopussy.support.DataKitDefinitionTest.ID;
 import static ru.serge2nd.octopussy.util.Queries.queries;
 import static ru.serge2nd.test.Asserting.assertEach;
 
-@NoWebSpringBootTest
+@SpringBootSoftTest
+@ContextHierarchy({
+    @ContextConfiguration(classes = TestCommonConfig.class)
+})
 @TestInstance(Lifecycle.PER_CLASS)
 class NativeQueryAdapterImplTransactionTest implements BaseContextTest {
     @SuppressWarnings("SqlDialectInspection,SqlNoDataSourceInspection")

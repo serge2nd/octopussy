@@ -7,15 +7,22 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.ContextHierarchy;
+import org.springframework.test.context.TestExecutionListeners;
+import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
 import ru.serge2nd.octopussy.App;
 import ru.serge2nd.octopussy.BaseContextTest;
-import ru.serge2nd.octopussy.NoWebConfig.NoWebSpringBootTest;
+import ru.serge2nd.octopussy.SpringBootSoftTest;
+import ru.serge2nd.octopussy.TestCommonConfig;
 import ru.serge2nd.octopussy.spi.DataKit;
 import ru.serge2nd.octopussy.spi.DataKitService;
 import ru.serge2nd.octopussy.spi.NativeQueryAdapter;
 import ru.serge2nd.octopussy.spi.NativeQueryAdapterProvider;
 import ru.serge2nd.test.util.Resources;
 
+import javax.annotation.PostConstruct;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDate;
@@ -32,7 +39,10 @@ import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static ru.serge2nd.octopussy.support.DataKitDefinitionTest.ID;
 import static ru.serge2nd.test.util.CustomAssertions.assertStrictlyEquals;
 
-@NoWebSpringBootTest
+@SpringBootSoftTest
+@ContextHierarchy({
+    @ContextConfiguration(classes = TestCommonConfig.class)
+})
 @TestInstance(Lifecycle.PER_CLASS)
 class NativeQueryAdapterImplTest implements BaseContextTest {
     static final String URL_PREFIX = "jdbc:h2:mem:";

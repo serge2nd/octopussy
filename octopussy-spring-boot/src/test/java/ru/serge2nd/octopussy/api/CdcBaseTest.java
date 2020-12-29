@@ -5,11 +5,13 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.TestExecutionListeners;
-import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.ContextHierarchy;
 import org.springframework.test.web.servlet.MockMvc;
 import ru.serge2nd.octopussy.BaseContextTest;
+import ru.serge2nd.octopussy.MockServiceLayer;
+import ru.serge2nd.octopussy.SpringBootSoftTest;
 import ru.serge2nd.octopussy.TestWebConfig;
 import ru.serge2nd.octopussy.spi.DataKitService;
 import ru.serge2nd.octopussy.spi.NativeQueryAdapterProvider;
@@ -18,6 +20,7 @@ import ru.serge2nd.octopussy.util.QueryWithParams;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonMap;
+import static org.mockito.Answers.RETURNS_DEEP_STUBS;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
@@ -29,15 +32,17 @@ import static ru.serge2nd.octopussy.util.Queries.queries;
 import static ru.serge2nd.stream.ArrayCollectors.mapToInts;
 import static ru.serge2nd.stream.util.Collecting.collect;
 
-@SpringBootTest(classes = TestWebConfig.class)
-@TestExecutionListeners(DependencyInjectionTestExecutionListener.class)
+@SpringBootSoftTest
+@ContextHierarchy({
+    @ContextConfiguration(classes = TestWebConfig.class)
+})
+@MockServiceLayer
 @TestInstance(Lifecycle.PER_CLASS)
-@SuppressWarnings("unchecked")
 abstract class CdcBaseTest implements BaseContextTest {
 
     static final DataKitDefinition DEF = new DataKitDefinition(ID, properties(
-            "url"  , "jdbc:h2:mem:db1000",
-            "login", "serge"
+        "url"  , "jdbc:h2:mem:db1000",
+        "login", "serge"
     ).toMap());
     static final DataKitDefinition DEF2 = new DataKitDefinition(ID2, singletonMap("abc", "xyz"));
 
@@ -45,7 +50,7 @@ abstract class CdcBaseTest implements BaseContextTest {
     @Autowired DataKitService serviceMock;
     @Autowired NativeQueryAdapterProvider providerMock;
 
-    @BeforeAll
+    @BeforeAll @SuppressWarnings("unchecked")
     void beforeAll() {
         RestAssuredMockMvc.mockMvc(mockMvc);
 

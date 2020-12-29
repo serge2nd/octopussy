@@ -13,8 +13,12 @@ import static ru.serge2nd.test.Cfg.EOL;
 public class CustomMatchers {
 
     public static Matcher<String> equalToJson(String expected) {
+        return equalToJson(expected, LENIENT);
+    }
+
+    public static Matcher<String> equalToJson(String expected, JSONCompareMode mode) {
         return new MatcherBuilder<String>(){}
-                .then(json -> compareJson(expected, json, LENIENT))
+                .then(json -> compareJson(expected, json, mode))
                 .matchIf(JSONCompareResult::passed)
                 .append("JSONs are equal" + EOL)
                 .alert(r -> EOL + "mismatch: " + r.getMessage())

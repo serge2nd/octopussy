@@ -7,11 +7,14 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.json.JsonTest;
 import org.springframework.boot.test.json.JacksonTester;
-import org.springframework.context.annotation.Import;
-import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
+import org.springframework.context.ApplicationContext;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.ContextHierarchy;
 import ru.serge2nd.octopussy.BaseContextTest;
+import ru.serge2nd.octopussy.MockServiceLayer;
+import ru.serge2nd.octopussy.SpringBootSoftTest;
+import ru.serge2nd.octopussy.TestWebConfig;
 import ru.serge2nd.test.util.Resources;
 
 import javax.validation.Validator;
@@ -19,50 +22,51 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.util.stream.Stream;
 
-import static java.lang.String.format;
 import static java.lang.invoke.MethodHandles.lookup;
 import static java.util.Arrays.asList;
-import static java.util.Arrays.stream;
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonMap;
-import static java.util.stream.Collectors.toList;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
+import static ru.serge2nd.octopussy.AppContractsTesting.*;
+import static ru.serge2nd.stream.MappingCollectors.mapToList;
+import static ru.serge2nd.stream.util.Collecting.collect;
 import static ru.serge2nd.test.match.AssertThat.assertThat;
 import static ru.serge2nd.test.util.CustomMatchers.equalToJson;
 
+@SpringBootSoftTest
+@ContextHierarchy({
+    @ContextConfiguration(classes = TestWebConfig.class)
+})
+@MockServiceLayer
 @TestInstance(Lifecycle.PER_CLASS)
-@JsonTest @Import(LocalValidatorFactoryBean.class)
 @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
 class QueriesRqTest implements BaseContextTest {
-    static final String J = "query_rq_tmpl.json";
-    static final String Q = "select smth from smwh";
-    static final Integer I = Integer.MAX_VALUE;
-    static final String K = I.toString();
-    static final Double V = 3.14159;
-    static final QueryRq RQ = query(Q, K, V);
-    static final QueriesRq RQS = queryRqs(format("%f", V), I, RQ);
+    static final String J = str("query_rq_tmpl.json", Q, K1, V1, K2, V2);
+    static final QueryRq RQ = query(Q, K1, V1);
+    static final QueriesRq RQS = queryRqs(K2, V2, RQ);
 
+    @Autowired ApplicationContext ctx;
     @Autowired JacksonTester<QueriesRq> tester;
     @Autowired Validator validator;
 
     static Stream<Arguments> validQueryRqProvider() { return Stream.of(
-            arguments("query", queries(Q)),
-            arguments("param", RQS),
-            arguments("global param", queryRqs(K, V, query(Q))),
-            arguments("null param", queryRqs(K, V, query(Q, K, null))),
-            arguments("null global param", queryRqs(K, null, query(Q))),
-            arguments("two queries", queryRqs(RQ, RQ))); }
+            arguments("query"            , queries(Q)),
+            arguments("param"            , RQS),
+            arguments("global param"     , queryRqs(K1, V1, query(Q))),
+            arguments("null param"       , queryRqs(K1, V1, query(Q, K1, null))),
+            arguments("null global param", queryRqs(K1, null, query(Q))),
+            arguments("two queries"      , queryRqs(RQ, RQ))); }
     static Stream<Arguments> invalidQueryRqProvider() { return Stream.of(
-            arguments("null queries", new QueriesRq(null, emptyMap())),
-            arguments("no queries", queries()),
-            arguments("null query", queries((String)null)),
-            arguments("null query rq", queryRqs((QueryRq)null)),
-            arguments("empty query", queryRqs(query(" \t\n"))),
-            arguments("null param key", queryRqs(query(Q, null, V))),
-            arguments("null global param key", queryRqs(null, V, query(Q))),
-            arguments("empty param key", queryRqs(query(Q, " \t\n", V))),
-            arguments("empty global param key", queryRqs(" \t\n", V, query(Q)))); }
+            arguments("null queries"          , new QueriesRq(null, emptyMap())),
+            arguments("no queries"            , queries()),
+            arguments("null query"            , queries((String)null)),
+            arguments("null query rq"         , queryRqs((QueryRq)null)),
+            arguments("empty query"           , queryRqs(query(" \t\n"))),
+            arguments("null param key"        , queryRqs(query(Q, null, V1))),
+            arguments("null global param key" , queryRqs(null, V1, query(Q))),
+            arguments("empty param key"       , queryRqs(query(Q, " \t\n", V1))),
+            arguments("empty global param key", queryRqs(" \t\n", V1, query(Q)))); }
 
     @ParameterizedTest(name = "{0}")
     @MethodSource("validQueryRqProvider")
@@ -87,7 +91,7 @@ class QueriesRqTest implements BaseContextTest {
     @Test
     void testRead() throws IOException {
         // WHEN
-        QueriesRq result = tester.read(new StringReader(str(J, Q, I, V, format("%f", V), I))).getObject();
+        QueriesRq result = tester.read(new StringReader(J)).getObject();
 
         // THEN
         assertEquals(RQS, result, "read mismatches");
@@ -95,12 +99,10 @@ class QueriesRqTest implements BaseContextTest {
 
     @Test
     void testWrite() throws IOException {
-        assertThat(json(RQS), equalToJson(str(J, Q, I, V, format("%f", V), I)));
+        assertThat(json(RQS), equalToJson(J));
     }
 
-    static QueriesRq queries(String... qs) { return new QueriesRq(stream(qs).map(QueriesRqTest::query).collect(toList()), null); }
-
-    static QueriesRq queries(String gk, Object gv, String... qs) { return new QueriesRq(stream(qs).map(QueriesRqTest::query).collect(toList()), singletonMap(gk, gv)); }
+    static QueriesRq queries(String... qs) { return new QueriesRq(collect(qs, mapToList(QueriesRqTest::query, 0)), null); }
 
     static QueriesRq queryRqs(QueryRq... rqs) { return new QueriesRq(asList(rqs), null); }
 
