@@ -13,7 +13,7 @@ import java.util.stream.Collector;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptySet;
-import static ru.serge2nd.stream.ArrayCollectors.mappingAccumulator;
+import static ru.serge2nd.stream.util.ArrayAccumulators.mapping;
 import static ru.serge2nd.stream.util.Collecting.noCombiner;
 
 /**
@@ -46,7 +46,7 @@ public interface Queries extends List<QueryWithParams> {
     }
 
     static <E> Collector<E, ?, Queries> mapToQueries(@NonNull Function<E, QueryWithParams> mapping, int len) {
-        return new SuppliedAccumulator<E, QueryWithParams[], Queries>(() -> new QueryWithParams[len], mappingAccumulator(mapping)) {
+        return new SuppliedAccumulator<E, QueryWithParams[], Queries>(() -> new QueryWithParams[len], mapping(mapping)) {
             @Override public Function<QueryWithParams[], Queries> finisher()     { return Queries::queries; }
             @Override public Set<Characteristics>              characteristics() { return emptySet(); }
             @Override public BinaryOperator<QueryWithParams[]>    combiner()     { return noCombiner(); }

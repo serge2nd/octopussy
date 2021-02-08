@@ -29,6 +29,11 @@
             <scope>provided</scope>
             <exclusions><exclusion><groupId>org.codehaus.groovy</groupId><artifactId>*</artifactId></exclusion></exclusions>
         </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-web</artifactId>
+            <scope>provided</scope>
+        </dependency>
     </dependencies>
 
     <dependencyManagement>
@@ -37,15 +42,13 @@
                 <groupId>org.springframework.cloud</groupId>
                 <artifactId>spring-cloud-dependencies</artifactId>
                 <version>${spring-cloud.version}</version>
-                <type>pom</type>
-                <scope>import</scope>
+                <type>pom</type><scope>import</scope>
             </dependency>
             <dependency>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-dependencies</artifactId>
                 <version>${spring-boot.version}</version>
-                <type>pom</type>
-                <scope>import</scope>
+                <type>pom</type><scope>import</scope>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -103,10 +106,10 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <groovy.version>2.5.14</groovy.version>
-        <spring-boot.version>2.4.0</spring-boot.version>
-        <spring-cloud.version>Hoxton.SR9</spring-cloud.version>
+        <spring-boot.version>2.4.2</spring-boot.version>
+        <spring-cloud.version>2020.0.1</spring-cloud.version>
 
-        <gmavenplus-plugin.version>1.12.0</gmavenplus-plugin.version>
+        <gmavenplus-plugin.version>1.12.1</gmavenplus-plugin.version>
         <compiler-plugin.version>3.8.1</compiler-plugin.version>
         <jar-plugin.version>3.2.0</jar-plugin.version>
     </properties>

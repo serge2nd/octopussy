@@ -6,12 +6,13 @@ import org.springframework.context.annotation.Import;
 import ru.serge2nd.bean.processor.ImmutableFilter;
 import ru.serge2nd.bean.processor.WrapBeanPostProcessor;
 import ru.serge2nd.bean.processor.WrapBeanPostProcessor.BeanFilter;
-import ru.serge2nd.bean.processor.WrapBeanPostProcessor.Wrapper;
 import ru.serge2nd.collection.HardProperties;
 import ru.serge2nd.function.DelegatingOperatorProvider;
 import ru.serge2nd.function.OperatorProvider;
 
+import java.lang.reflect.Type;
 import java.util.*;
+import java.util.function.BiFunction;
 
 import static java.util.Optional.of;
 
@@ -23,7 +24,7 @@ public class ImmutableWrapperConfig {
         return ImmutableFilter.INSTANCE;
     }
 
-    @Bean Wrapper wrapper(OperatorProvider<Object> wrapperProvider) {
+    @Bean BiFunction<Type, Object, ?> wrapper(OperatorProvider<Object> wrapperProvider) {
         return (type, bean) -> type != null
             ? wrapperProvider.forType(type)
                 .map(w -> w.apply(bean))

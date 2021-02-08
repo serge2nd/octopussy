@@ -5,4 +5,5 @@
 !.dockerignore
 
 *.iml
+*.jar
 target/
