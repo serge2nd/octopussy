@@ -8,7 +8,7 @@ import org.skyscreamer.jsonassert.JSONCompareResult;
 import ru.serge2nd.test.match.builder.MatcherBuilder;
 
 import static org.skyscreamer.jsonassert.JSONCompareMode.LENIENT;
-import static ru.serge2nd.test.Cfg.EOL;
+import static ru.serge2nd.test.Env.EOL;
 
 public class CustomMatchers {
 

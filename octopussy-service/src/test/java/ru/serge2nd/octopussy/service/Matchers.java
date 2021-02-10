@@ -4,8 +4,8 @@ import org.hamcrest.Matcher;
 import ru.serge2nd.octopussy.spi.DataKit;
 import ru.serge2nd.test.match.builder.MatcherBuilder;
 
+import static ru.serge2nd.test.Predicates.not;
 import static ru.serge2nd.test.match.CommonMatch.sameAs;
-import static ru.serge2nd.test.match.MatchAssist.not;
 
 public class Matchers {
 
