@@ -31,11 +31,11 @@ import static ru.serge2nd.stream.CommonCollectors.toList;
 import static ru.serge2nd.stream.util.Collecting.collect;
 import static ru.serge2nd.test.Asserting.assertEach;
 import static ru.serge2nd.test.match.AssertThat.assertThat;
-import static ru.serge2nd.test.match.CommonMatch.absent;
-import static ru.serge2nd.test.match.CommonMatch.equalTo;
-import static ru.serge2nd.test.match.CommonMatch.fails;
-import static ru.serge2nd.test.match.CommonMatch.presentedSame;
-import static ru.serge2nd.test.match.CommonMatch.sameAs;
+import static ru.serge2nd.test.match.CoreMatch.absent;
+import static ru.serge2nd.test.match.CoreMatch.equalTo;
+import static ru.serge2nd.test.match.CoreMatch.fails;
+import static ru.serge2nd.test.match.CoreMatch.presentedSame;
+import static ru.serge2nd.test.match.CoreMatch.sameAs;
 
 @SuppressWarnings("SynchronizationOnLocalVariableOrMethodParameter")
 @TestInstance(Lifecycle.PER_CLASS)

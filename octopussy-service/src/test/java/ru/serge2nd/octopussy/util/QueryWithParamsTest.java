@@ -10,10 +10,10 @@ import java.util.Map;
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonMap;
 import static ru.serge2nd.test.match.AssertThat.assertThat;
-import static ru.serge2nd.test.match.CommonMatch.equalTo;
-import static ru.serge2nd.test.match.CommonMatch.fails;
-import static ru.serge2nd.test.match.CommonMatch.illegalArgument;
-import static ru.serge2nd.test.match.CommonMatch.sameAs;
+import static ru.serge2nd.test.match.CoreMatch.equalTo;
+import static ru.serge2nd.test.match.CoreMatch.fails;
+import static ru.serge2nd.test.match.CoreMatch.illegalArgument;
+import static ru.serge2nd.test.match.CoreMatch.sameAs;
 
 @TestInstance(Lifecycle.PER_CLASS)
 class QueryWithParamsTest {

@@ -26,8 +26,8 @@ import static ru.serge2nd.octopussy.service.Matchers.isOpen;
 import static ru.serge2nd.octopussy.support.DataKitDefinitionTest.DEF;
 import static ru.serge2nd.octopussy.support.DataKitDefinitionTest.ID;
 import static ru.serge2nd.test.match.AssertThat.assertThat;
-import static ru.serge2nd.test.match.CommonMatch.fails;
-import static ru.serge2nd.test.match.CommonMatch.illegalState;
+import static ru.serge2nd.test.match.CoreMatch.fails;
+import static ru.serge2nd.test.match.CoreMatch.illegalState;
 
 @ExtendWith(MockitoExtension.class)
 @TestInstance(Lifecycle.PER_CLASS)

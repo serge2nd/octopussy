@@ -23,10 +23,10 @@ import static ru.serge2nd.octopussy.service.Matchers.isOpen;
 import static ru.serge2nd.octopussy.support.DataKitDefinitionTest.DEF;
 import static ru.serge2nd.test.Asserting.assertEach;
 import static ru.serge2nd.test.match.AssertThat.assertThat;
-import static ru.serge2nd.test.match.CommonMatch.fails;
-import static ru.serge2nd.test.match.CommonMatch.illegalArgument;
-import static ru.serge2nd.test.match.CommonMatch.notNullValue;
-import static ru.serge2nd.test.match.CommonMatch.sameAs;
+import static ru.serge2nd.test.match.CoreMatch.fails;
+import static ru.serge2nd.test.match.CoreMatch.illegalArgument;
+import static ru.serge2nd.test.match.CoreMatch.notNullRef;
+import static ru.serge2nd.test.match.CoreMatch.sameAs;
 
 @TestInstance(Lifecycle.PER_CLASS)
 class JpaKitImplTest {
@@ -41,8 +41,8 @@ class JpaKitImplTest {
 
         /* THEN */ assertThat(
         result.getDefinition()          , sameAs(DEF),
-        result.getDataSource()          , notNullValue("data source"),
-        result.getEntityManagerFactory(), notNullValue("entity manager factory"), () ->
+        result.getDataSource()          , notNullRef("data source"),
+        result.getEntityManagerFactory(), notNullRef("entity manager factory"), () ->
         verify(dataSourceMock, times(1)).get(), () ->
         verify(emfMock, times(1)).apply(same(result.getDataSource())));
     }

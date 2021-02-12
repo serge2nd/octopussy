@@ -5,7 +5,7 @@ import ru.serge2nd.octopussy.spi.DataKit;
 import ru.serge2nd.test.match.builder.MatcherBuilder;
 
 import static ru.serge2nd.test.Predicates.not;
-import static ru.serge2nd.test.match.CommonMatch.sameAs;
+import static ru.serge2nd.test.match.CoreMatch.sameAs;
 
 public class Matchers {
 

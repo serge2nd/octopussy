@@ -10,8 +10,8 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static ru.serge2nd.octopussy.service.Matchers.isClosed;
 import static ru.serge2nd.octopussy.support.DataKitDefinition.builder;
 import static ru.serge2nd.test.match.AssertThat.assertThat;
-import static ru.serge2nd.test.match.CommonMatch.illegalArgument;
-import static ru.serge2nd.test.match.CommonMatch.sameAs;
+import static ru.serge2nd.test.match.CoreMatch.illegalArgument;
+import static ru.serge2nd.test.match.CoreMatch.sameAs;
 
 @TestInstance(Lifecycle.PER_CLASS)
 public class DataKitDefinitionTest {

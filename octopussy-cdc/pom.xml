@@ -107,7 +107,7 @@
 
         <groovy.version>2.5.14</groovy.version>
         <spring-boot.version>2.4.2</spring-boot.version>
-        <spring-cloud.version>2020.0.1</spring-cloud.version>
+        <spring-cloud.version>Hoxton.SR10</spring-cloud.version>
 
         <gmavenplus-plugin.version>1.12.1</gmavenplus-plugin.version>
         <compiler-plugin.version>3.8.1</compiler-plugin.version>

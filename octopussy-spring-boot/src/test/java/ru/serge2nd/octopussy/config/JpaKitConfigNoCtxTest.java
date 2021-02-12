@@ -33,7 +33,7 @@ import static ru.serge2nd.stream.MapCollectors.toMap;
 import static ru.serge2nd.stream.util.Collecting.collect;
 import static ru.serge2nd.test.Asserting.assertEach;
 import static ru.serge2nd.test.match.AssertThat.assertThat;
-import static ru.serge2nd.test.match.CommonMatch.sameAs;
+import static ru.serge2nd.test.match.CoreMatch.sameAs;
 
 @TestInstance(Lifecycle.PER_CLASS)
 class JpaKitConfigNoCtxTest {
