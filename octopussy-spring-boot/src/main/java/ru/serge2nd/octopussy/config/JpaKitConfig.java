@@ -18,7 +18,7 @@ import org.springframework.transaction.interceptor.TransactionAttributeSource;
 import org.springframework.transaction.interceptor.TransactionProxyFactoryBean;
 import ru.serge2nd.bean.processor.Immutable;
 import ru.serge2nd.octopussy.service.DataKitProxy;
-import ru.serge2nd.octopussy.service.InMemoryDataKitService;
+import ru.serge2nd.octopussy.service.InMemoryDataKits;
 import ru.serge2nd.octopussy.spi.*;
 import ru.serge2nd.octopussy.spi.DataKit.DataKitBuilder;
 import ru.serge2nd.octopussy.support.*;
@@ -43,15 +43,16 @@ public class JpaKitConfig implements DataKitFactory, NativeQueryAdapterProvider 
     //region Beans
 
     @Bean(destroyMethod = "close")
-    DataKitService dataKitService() {
-        return new InMemoryDataKitService(new ConcurrentHashMap<>(), new JpaKitProto());
+    @SuppressWarnings("unchecked")
+    <T extends DataKitService & DataKitExecutor> T dataKitService() {
+        return (T)new InMemoryDataKits(new ConcurrentHashMap<>(), new JpaKitProto());
     }
 
     @Bean Function<EntityManagerFactory, PlatformTransactionManager> txManagerProvider() {
         return emf -> new HibernateTransactionManager(emf.unwrap(SessionFactory.class));
     }
 
-    @Bean CacheManager cacheManager() {
+    @Lazy@Bean CacheManager cacheManager() {
         SimpleCacheManager cacheManager = new SimpleCacheManager();
         cacheManager.setCaches(singleton(new ConcurrentMapCache(QUERY_ADAPTERS_CACHE)));
         return cacheManager;
@@ -62,9 +63,9 @@ public class JpaKitConfig implements DataKitFactory, NativeQueryAdapterProvider 
     //region Implementations
 
     @Override
-    public NativeQueryAdapter getQueryAdapter(String kitId) {
-        return dataKitService().doWith(kitId, EntityManagerFactory.class, emf -> {
-            NativeQueryAdapter cached = queryAdaptersCache().get(kitId, NativeQueryAdapter.class);
+    public NativeQueryAdapter getQueryAdapter(String id) {
+        return dataKitService().apply(id, EntityManagerFactory.class, emf -> {
+            NativeQueryAdapter cached = queryAdaptersCache().get(id, NativeQueryAdapter.class);
             if (cached != null) return cached;
 
             PlatformTransactionManager tm = txManagerProvider().apply(emf);
@@ -80,7 +81,7 @@ public class JpaKitConfig implements DataKitFactory, NativeQueryAdapterProvider 
             txProxy.afterPropertiesSet();
             NativeQueryAdapter queryAdapter = (NativeQueryAdapter)txProxy.getObject();
 
-            queryAdaptersCache().putIfAbsent(kitId, queryAdapter);
+            queryAdaptersCache().putIfAbsent(id, queryAdapter);
             return queryAdapter;
         });
     }

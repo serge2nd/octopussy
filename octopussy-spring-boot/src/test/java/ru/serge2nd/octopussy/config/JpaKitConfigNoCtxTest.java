@@ -79,7 +79,7 @@ class JpaKitConfigNoCtxTest {
     void testGetQueryAdapter() throws Exception {
         // GIVEN
         EntityManagerFactory emfMock = mock(EntityManagerFactory.class);
-        when(instance.dataKitService().doWith(eq(ID), same(EntityManagerFactory.class), any(Function.class)))
+        when(instance.dataKitService().apply(eq(ID), same(EntityManagerFactory.class), any(Function.class)))
                 .thenAnswer(i -> i.getArgument(2, Function.class).apply(emfMock));
         when(instance.getQueryAdapter(ID)).thenCallRealMethod();
 

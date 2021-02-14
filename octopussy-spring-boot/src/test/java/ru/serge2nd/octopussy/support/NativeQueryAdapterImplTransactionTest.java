@@ -19,6 +19,7 @@ import org.springframework.transaction.TransactionDefinition;
 import ru.serge2nd.octopussy.BaseContextTest;
 import ru.serge2nd.octopussy.SpringBootSoftTest;
 import ru.serge2nd.octopussy.TestCommonConfig;
+import ru.serge2nd.octopussy.spi.DataKitExecutor;
 import ru.serge2nd.octopussy.spi.DataKitService;
 import ru.serge2nd.octopussy.spi.NativeQueryAdapter;
 import ru.serge2nd.octopussy.spi.NativeQueryAdapterProvider;
@@ -58,7 +59,7 @@ class NativeQueryAdapterImplTransactionTest implements BaseContextTest {
     static final String Q = "not executed";
 
     @Autowired NativeQueryAdapterProvider adapterProvider;
-    @MockBean DataKitService serviceMock;
+    @MockBean(name = "dataKitService") DataKitServiceMock serviceMock;
     @MockBean Function<EntityManagerFactory, PlatformTransactionManager> tmProviderMock;
     @Value("#{cacheManager.getCache('"+QUERY_ADAPTERS_CACHE+"')}") Cache queryAdaptersCache;
 
@@ -106,7 +107,7 @@ class NativeQueryAdapterImplTransactionTest implements BaseContextTest {
         List<?> result = adapterProvider.getQueryAdapter(ID).execute(Q, emptyMap());
 
         // THEN
-        captureTransaction(tx -> assertEach(() ->
+        capture(tx -> assertEach(() ->
             assertTrue(result.isEmpty(), "wrong result"), () ->
             assertEquals(ISOLATION_DEFAULT, tx.getIsolationLevel(), "wrong isolation"), () ->
             assertEquals(PROPAGATION_SUPPORTS, tx.getPropagationBehavior(), "wrong propagation"), () ->
@@ -124,7 +125,7 @@ class NativeQueryAdapterImplTransactionTest implements BaseContextTest {
         int[] result = adapterProvider.getQueryAdapter(ID).executeUpdate(queries(new QueryWithParams(Q, emptyMap())));
 
         // THEN
-        captureTransaction(tx -> assertEach(() ->
+        capture(tx -> assertEach(() ->
             assertArrayEquals(expected, result, "wrong result"), () ->
             assertEquals(ISOLATION_DEFAULT, tx.getIsolationLevel(), "wrong isolation"), () ->
             assertEquals(PROPAGATION_REQUIRED, tx.getPropagationBehavior(), "wrong propagation"), () ->
@@ -147,14 +148,16 @@ class NativeQueryAdapterImplTransactionTest implements BaseContextTest {
 
     @SuppressWarnings("unchecked")
     void mockDataKitService() {
-        when(serviceMock.doWith(eq(ID), same(EntityManagerFactory.class), any(Function.class)))
+        when(serviceMock.apply(eq(ID), same(EntityManagerFactory.class), any(Function.class)))
                 .thenAnswer(i -> i.getArgument(2, Function.class).apply(emfMock));
     }
     void mockTransactionManager() { when(tmProviderMock.apply(same(emfMock))).thenReturn(tmMock); }
 
-    void captureTransaction(Consumer<TransactionDefinition> consumer) {
+    void capture(Consumer<TransactionDefinition> consumer) {
         ArgumentCaptor<TransactionDefinition> tx = ArgumentCaptor.forClass(TransactionDefinition.class);
         verify(tmMock, times(1)).getTransaction(tx.capture());
         consumer.accept(tx.getValue());
     }
+
+    interface DataKitServiceMock extends DataKitService, DataKitExecutor {}
 }

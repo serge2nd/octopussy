@@ -10,7 +10,7 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import ru.serge2nd.octopussy.service.ex.DataKitException;
 import ru.serge2nd.octopussy.spi.DataKit;
-import ru.serge2nd.octopussy.spi.DataKitService;
+import ru.serge2nd.octopussy.spi.DataKitExecutor;
 import ru.serge2nd.octopussy.support.DataKitDefinition;
 
 import java.util.function.Consumer;
@@ -33,7 +33,8 @@ import static ru.serge2nd.test.match.CoreMatch.illegalState;
 @TestInstance(Lifecycle.PER_CLASS)
 public class DataKitProxyTest {
     @Mock                              DataKitProxy dataKitMock;
-    @Mock                              DataKitService serviceMock;
+    @Mock
+    DataKitExecutor serviceMock;
     @Mock(answer = RETURNS_DEEP_STUBS) DataKitFactory factoryMock;
 
     DataKitProxy proxy;
@@ -166,12 +167,12 @@ public class DataKitProxyTest {
 
     @SuppressWarnings("unchecked")
     void mockWorker(Consumer<InvocationOnMock> invocationConsumer) {
-        when(serviceMock.doWith(eq(ID), same(DataKitProxy.class), any(Function.class)))
+        when(serviceMock.apply(eq(ID), same(DataKitProxy.class), any(Function.class)))
         .thenAnswer(i -> {invocationConsumer.accept(i); return null;});
     }
     @SuppressWarnings("unchecked")
     void enableWorker(Runnable pre, DataKit arg) {
-        when(serviceMock.doWith(eq(ID), same(DataKitProxy.class), any(Function.class)))
+        when(serviceMock.apply(eq(ID), same(DataKitProxy.class), any(Function.class)))
         .thenAnswer(i -> {
             pre.run();
             return i.getArgument(2, Function.class).apply(arg);

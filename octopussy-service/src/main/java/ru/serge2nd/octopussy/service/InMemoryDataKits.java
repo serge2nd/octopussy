@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import ru.serge2nd.collection.Unmodifiable;
 import ru.serge2nd.octopussy.spi.DataKit;
+import ru.serge2nd.octopussy.spi.DataKitExecutor;
 import ru.serge2nd.octopussy.spi.DataKitService;
 
 import java.io.Closeable;
@@ -21,45 +22,45 @@ import static ru.serge2nd.octopussy.service.ex.DataKitException.errDataKitNotFou
 
 @Slf4j
 @RequiredArgsConstructor
-public class InMemoryDataKitService implements DataKitService, Closeable {
+public class InMemoryDataKits implements DataKitService, DataKitExecutor, Closeable {
     private final Map<String, DataKit> byId;
     private final DataKit dataKitPrototype;
 
     @Override
-    public DataKit             get(String kitId)  { return find(kitId).orElseThrow(()->errDataKitNotFound(kitId)); }
+    public DataKit             get(String id)  { return find(id).orElseThrow(()->errDataKitNotFound(id)); }
     @Override
-    public Optional<DataKit>   find(String kitId) { return ofNullable(byId.get(kitId)); }
+    public Optional<DataKit>   find(String id) { return ofNullable(byId.get(id)); }
     @Override
-    public Collection<DataKit> getAll()           { return Unmodifiable.ofCollection(byId.values()); }
+    public Collection<DataKit> getAll()        { return Unmodifiable.ofCollection(byId.values()); }
 
     @Override
     @SuppressWarnings("unchecked")
-    public <T, R> R doWith(String kitId, Class<T> t, Function<? super T, R> action) {
+    public <T, R> R apply(String id, Class<T> t, Function<? super T, ? extends R> action) {
         Object[] result = new Object[1];
         peek(dataKit -> result[0] =
                 action.apply(ofNullable(dataKit)
-                .orElseThrow(()->errDataKitNotFound(kitId))
-                .unwrap(t)), kitId);
+                .orElseThrow(()->errDataKitNotFound(id))
+                .unwrap(t)), id);
         return (R)result[0];
     }
 
     @Override
     public DataKit create(DataKit toCreate) {
-        String kitId = toCreate.getDefinition().getKitId();
-        return compute(kitId, existing -> ofNullable(
+        String id = toCreate.getDefinition().getKitId();
+        return compute(id, existing -> ofNullable(
                 isNull(existing) ? toCreate : null)
                 .map(raw -> dataKitPrototype.toBuilder()
                         .definition(raw.getDefinition())
                         .build())
-                .orElseThrow(()->errDataKitExists(kitId)));
+                .orElseThrow(()->errDataKitExists(id)));
     }
 
     @Override
-    public void delete(String kitId) {
+    public void delete(String id) {
         cut(existing ->
                 ofNullable(existing)
-                .orElseThrow(()->errDataKitNotFound(kitId))
-                .close(), kitId);
+                .orElseThrow(()->errDataKitNotFound(id))
+                .close(), id);
     }
 
     @Override
@@ -69,13 +70,13 @@ public class InMemoryDataKitService implements DataKitService, Closeable {
             dataKit.close();
     }
 
-    protected DataKit cut(Consumer<DataKit> consumer, String kitId) {
-        return this.compute(kitId, val -> {consumer.accept(val); return null;});
+    protected DataKit cut(Consumer<DataKit> consumer, String id) {
+        return compute(id, val -> {consumer.accept(val); return null;});
     }
-    protected DataKit peek(Consumer<DataKit> consumer, String kitId) {
-        return this.compute(kitId, val -> {consumer.accept(val); return val;});
+    protected DataKit peek(Consumer<DataKit> consumer, String id) {
+        return compute(id, val -> {consumer.accept(val); return val;});
     }
-    protected DataKit compute(String kitId, UnaryOperator<DataKit> mapping) {
-        return byId.compute(kitId, ($, val) -> mapping.apply(val));
+    protected DataKit compute(String id, UnaryOperator<DataKit> mapping) {
+        return byId.compute(id, ($, val) -> mapping.apply(val));
     }
 }

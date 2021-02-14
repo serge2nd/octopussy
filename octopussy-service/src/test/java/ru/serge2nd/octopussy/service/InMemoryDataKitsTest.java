@@ -39,7 +39,7 @@ import static ru.serge2nd.test.match.CoreMatch.sameAs;
 
 @SuppressWarnings("SynchronizationOnLocalVariableOrMethodParameter")
 @TestInstance(Lifecycle.PER_CLASS)
-class InMemoryDataKitServiceTest {
+class InMemoryDataKitsTest {
     static final String ID1 = "5010";
     static final String ID2 = "7010";
     static final int TIMEOUT = 300;
@@ -49,8 +49,8 @@ class InMemoryDataKitServiceTest {
     final Map<String, DataKit> INITIAL = singletonMap(ID2, EXISTING);
     final Map<String, DataKit> REPO    = new ConcurrentHashMap<>(INITIAL);
 
-    final DataKit                prototypeMock  = mock(DataKit.class, RETURNS_DEEP_STUBS);
-    final InMemoryDataKitService dataKitService = new InMemoryDataKitService(REPO, prototypeMock);
+    final DataKit          prototypeMock  = mock(DataKit.class, RETURNS_DEEP_STUBS);
+    final InMemoryDataKits dataKitService = new InMemoryDataKits(REPO, prototypeMock);
 
     @BeforeEach void setUp() {
         REPO.clear(); REPO.putAll(INITIAL);
@@ -116,7 +116,7 @@ class InMemoryDataKitServiceTest {
         String expected = EXISTING.getDefinition().toString();
 
         // WHEN
-        String result = dataKitService.doWith(ID2, action);
+        String result = dataKitService.apply(ID2, action);
 
         /* THEN */ assertThat(
         result, equalTo(expected),
@@ -125,7 +125,7 @@ class InMemoryDataKitServiceTest {
 
     @Test
     void testDoWithNotFound() {
-        assertThat(()->dataKitService.doWith(ID1, $->$), fails(DataKitException.NotFound.class));
+        assertThat(()->dataKitService.apply(ID1, $->$), fails(DataKitException.NotFound.class));
     }
 
     @Test
@@ -179,7 +179,7 @@ class InMemoryDataKitServiceTest {
 
         assertTimeoutAndRelease(() ->
             supplyAsync(() -> dataKitService
-            .doWith(ID1, e -> e))
+            .apply(ID1, e -> e))
             .get(TIMEOUT, MILLISECONDS), dataKitService);
     }
 
@@ -187,7 +187,7 @@ class InMemoryDataKitServiceTest {
     void testLockOnDoWith() {
         CountDownLatch freeLocks = new CountDownLatch(1);
         runAsyncAndDelayOn(dataKitService, () ->
-            dataKitService.doWith(ID2, $ -> waitOn(dataKitService, freeLocks)), freeLocks);
+            dataKitService.apply(ID2, $ -> waitOn(dataKitService, freeLocks)), freeLocks);
 
         assertTimeoutAndRelease(() ->
             runAsync(() -> dataKitService

@@ -3,7 +3,7 @@ package ru.serge2nd.octopussy.service;
 import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
 import ru.serge2nd.octopussy.spi.DataKit;
-import ru.serge2nd.octopussy.spi.DataKitService;
+import ru.serge2nd.octopussy.spi.DataKitExecutor;
 import ru.serge2nd.octopussy.support.DataKitDefinition;
 
 import java.util.function.Function;
@@ -13,7 +13,7 @@ import static ru.serge2nd.octopussy.service.ex.DataKitException.errDataKitClosed
 @Slf4j
 public class DataKitProxy implements DataKit {
     private final DataKitDefinition definition;
-    private final DataKitService service;
+    private final DataKitExecutor executor;
     private final Function<DataKitDefinition, DataKit> dataKitFactory;
 
     protected volatile DataKit target;
@@ -21,10 +21,10 @@ public class DataKitProxy implements DataKit {
 
     @Builder(toBuilder = true)
     public DataKitProxy(DataKitDefinition definition,
-                        DataKitService service,
+                        DataKitExecutor executor,
                         Function<DataKitDefinition, DataKit> dataKitFactory) {
         this.definition = definition;
-        this.service = service;
+        this.executor = executor;
         this.dataKitFactory = dataKitFactory;
     }
 
@@ -37,18 +37,18 @@ public class DataKitProxy implements DataKit {
     @Override
     public void              close()            {
         if (!isClosed()) {
-            String kitId = definition.getKitId();
-            log.debug("closing the data kit " + kitId + "...");
+            String id = definition.getKitId();
+            log.debug("closing the data kit " + id + "...");
 
-            service.doWith(definition.getKitId(), DataKitProxy.class, proxy -> {
-                proxy.checkProxyActive(this, kitId);
+            executor.apply(id, DataKitProxy.class, proxy -> {
+                proxy.checkProxyActive(this, id);
 
                 if (!proxy.isClosed()) {
                     proxy.closed = true;
                     DataKit target = proxy.target;
                     if (target != null) target.close();
                 } else {
-                    log.debug(kitId + " was closed by another thread");
+                    log.debug(id + " was closed by another thread");
                 }
 
                 return null;
@@ -58,14 +58,13 @@ public class DataKitProxy implements DataKit {
 
     protected DataKit getTarget() {
         checkOpen();
-        if (target != null)
-            return target;
+        if (target != null) return target;
 
-        String kitId = definition.getKitId();
-        log.debug("trying on-demand initialization of the data kit " + kitId + "...");
+        String id = definition.getKitId();
+        log.debug("trying on-demand initialization of the data kit " + id + "...");
 
-        return service.doWith(kitId, DataKitProxy.class, proxy -> {
-            proxy.checkProxyActive(this, kitId);
+        return executor.apply(id, DataKitProxy.class, proxy -> {
+            proxy.checkProxyActive(this, id);
             proxy.checkOpen();
 
             DataKit target = proxy.target;
@@ -73,7 +72,7 @@ public class DataKitProxy implements DataKit {
             if (target == null) {
                 proxy.target = target = dataKitFactory.apply(proxy.definition);
             } else {
-                log.debug(kitId + " was initialized by another thread");
+                log.debug(id + " was initialized by another thread");
             }
 
             return target;
@@ -83,8 +82,8 @@ public class DataKitProxy implements DataKit {
     private void checkOpen() {
         if (isClosed()) throw errDataKitClosed(definition.getKitId());
     }
-    private void checkProxyActive(DataKit active, String kitId) {
-        if (this != active) throw new IllegalStateException(kitId + ": proxy not active");
+    private void checkProxyActive(DataKit active, String id) {
+        if (this != active) throw new IllegalStateException(id + ": proxy not active");
     }
 
     public static class DataKitProxyBuilder implements DataKitBuilder {
