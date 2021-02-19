@@ -9,4 +9,4 @@ set -u && mkdir -p "$EXT_DIR" && set +u
 done
 
 # shellcheck disable=SC2154
-java -Dloader.path="$EXT_DIR" -Dloader.debug=true -jar "${dist.file}"
+java $JVM_OPTS -Dloader.path="$EXT_DIR" -Dloader.debug=true -jar "${dist.file}"
