@@ -7,14 +7,11 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.jackson.JacksonAutoConfiguration;
-import org.springframework.boot.test.autoconfigure.json.JsonTestersAutoConfiguration;
 import org.springframework.boot.test.json.JacksonTester;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.ContextHierarchy;
-import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 import ru.serge2nd.octopussy.BaseContextTest;
-import ru.serge2nd.octopussy.MockServiceLayer;
+import ru.serge2nd.octopussy.ServiceMocksConfig;
 import ru.serge2nd.octopussy.SpringBootSoftTest;
 import ru.serge2nd.octopussy.TestWebConfig;
 import ru.serge2nd.test.util.Resources;
@@ -34,16 +31,15 @@ import static ru.serge2nd.test.util.CustomMatchers.equalToJson;
 
 @SpringBootSoftTest
 @ContextHierarchy({
-    @ContextConfiguration(classes = TestWebConfig.class)
+    @ContextConfiguration(classes = {TestWebConfig.class, ServiceMocksConfig.class})
 })
-@MockServiceLayer
 @TestInstance(Lifecycle.PER_CLASS)
 @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
 class DataKitDefinitionValidationTest implements BaseContextTest {
     static final String J = "data_kit.json";
 
-    @Autowired JacksonTester<DataKitDefinition> tester;
     @Autowired Validator validator;
+    JacksonTester<DataKitDefinition> tester;
 
     static Stream<Arguments> validDataKitsProvider() { return Stream.of(
             arguments("no props"      , builder().kitId(ID).build()),

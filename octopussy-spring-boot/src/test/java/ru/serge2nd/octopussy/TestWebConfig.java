@@ -1,8 +1,5 @@
 package ru.serge2nd.octopussy;
 
-import org.springframework.boot.autoconfigure.ImportAutoConfiguration;
-import org.springframework.boot.autoconfigure.jackson.JacksonAutoConfiguration;
-import org.springframework.boot.test.autoconfigure.json.JsonTestersAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -19,9 +16,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 
 @Configuration
 @Import({WebConfig.class, Router.class})
-@ImportAutoConfiguration({
-    JacksonAutoConfiguration.class,
-    JsonTestersAutoConfiguration.class})
 public class TestWebConfig {
     @Bean
     MockMvc mockMvc(WebApplicationContext ctx) {

@@ -12,7 +12,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.ContextHierarchy;
 import ru.serge2nd.octopussy.BaseContextTest;
-import ru.serge2nd.octopussy.MockServiceLayer;
+import ru.serge2nd.octopussy.ServiceMocksConfig;
 import ru.serge2nd.octopussy.SpringBootSoftTest;
 import ru.serge2nd.octopussy.TestWebConfig;
 import ru.serge2nd.test.util.Resources;
@@ -36,9 +36,8 @@ import static ru.serge2nd.test.util.CustomMatchers.equalToJson;
 
 @SpringBootSoftTest
 @ContextHierarchy({
-    @ContextConfiguration(classes = TestWebConfig.class)
+    @ContextConfiguration(classes = {TestWebConfig.class, ServiceMocksConfig.class})
 })
-@MockServiceLayer
 @TestInstance(Lifecycle.PER_CLASS)
 @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
 class QueriesRqTest implements BaseContextTest {
@@ -47,8 +46,8 @@ class QueriesRqTest implements BaseContextTest {
     static final QueriesRq RQS = queryRqs(K2, V2, RQ);
 
     @Autowired ApplicationContext ctx;
-    @Autowired JacksonTester<QueriesRq> tester;
     @Autowired Validator validator;
+    JacksonTester<QueriesRq> tester;
 
     static Stream<Arguments> validQueryRqProvider() { return Stream.of(
             arguments("query"            , queries(Q)),

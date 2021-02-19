@@ -9,7 +9,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.ContextHierarchy;
 import org.springframework.test.web.servlet.MockMvc;
 import ru.serge2nd.octopussy.BaseContextTest;
-import ru.serge2nd.octopussy.MockServiceLayer;
+import ru.serge2nd.octopussy.ServiceMocksConfig;
 import ru.serge2nd.octopussy.SpringBootSoftTest;
 import ru.serge2nd.octopussy.TestWebConfig;
 import ru.serge2nd.octopussy.spi.DataKitService;
@@ -32,10 +32,10 @@ import static ru.serge2nd.stream.util.Collecting.collect;
 
 @SpringBootSoftTest
 @ContextHierarchy({
-    @ContextConfiguration(classes = TestWebConfig.class)
+    @ContextConfiguration(classes = {TestWebConfig.class, ServiceMocksConfig.class})
 })
-@MockServiceLayer
 @TestInstance(Lifecycle.PER_CLASS)
+@SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
 abstract class CdcBaseTest implements BaseContextTest {
 
     static final DataKitDefinition DEF = new DataKitDefinition(ID, properties(

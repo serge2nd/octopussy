@@ -52,12 +52,12 @@ public class JpaKitConfig implements DataKitFactory, NativeQueryAdapterProvider 
         return emf -> new HibernateTransactionManager(emf.unwrap(SessionFactory.class));
     }
 
-    @Lazy@Bean CacheManager cacheManager() {
+    @Bean CacheManager cacheManager() {
         SimpleCacheManager cacheManager = new SimpleCacheManager();
         cacheManager.setCaches(singleton(new ConcurrentMapCache(QUERY_ADAPTERS_CACHE)));
         return cacheManager;
     }
-    @Lazy@Bean Cache queryAdaptersCache() { return cacheManager().getCache(QUERY_ADAPTERS_CACHE); }
+    @Bean Cache queryAdaptersCache() { return cacheManager().getCache(QUERY_ADAPTERS_CACHE); }
     //endregion
 
     //region Implementations
