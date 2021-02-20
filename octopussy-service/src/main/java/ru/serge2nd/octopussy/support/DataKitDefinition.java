@@ -19,9 +19,15 @@ import java.util.Map;
 @Value
 @Builder
 public class DataKitDefinition implements DataKit {
+    /**
+     * The data kit ID.
+     */
     @NotNull @Pattern(regexp = "[-_\\p{Alnum}]+")
     String kitId;
 
+    /**
+     * The data kit configuration properties.
+     */
     @NotNull @Singular
     Map<@NotBlank String, @NotNull Object> properties;
 
@@ -31,6 +37,7 @@ public class DataKitDefinition implements DataKit {
         this.properties = properties;
     }
 
+    /** {@inheritDoc} */
     @Override @JsonIgnore
     public DataKitDefinition getDefinition() { return this; }
 

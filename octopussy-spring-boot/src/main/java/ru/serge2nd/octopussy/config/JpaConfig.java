@@ -9,8 +9,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import ru.serge2nd.bean.processor.Immutable;
-import ru.serge2nd.octopussy.spi.JpaResultTransformer;
-import ru.serge2nd.octopussy.support.JpaResultToListTransformer;
+import ru.serge2nd.octopussy.spi.TableTransformer;
+import ru.serge2nd.octopussy.support.TableToListTransformer;
 
 import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
@@ -56,5 +56,5 @@ public class JpaConfig implements PersistenceUnitProvider {
         public List<?> transformList(List list)                        { return DELEGATE.transform(list); }
     };}
 
-    static final JpaResultTransformer DELEGATE = new JpaResultToListTransformer();
+    static final TableTransformer DELEGATE = new TableToListTransformer();
 }

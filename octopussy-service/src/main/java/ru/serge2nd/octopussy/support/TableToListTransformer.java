@@ -3,13 +3,13 @@ package ru.serge2nd.octopussy.support;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import ru.serge2nd.collection.Unmodifiable;
-import ru.serge2nd.octopussy.spi.JpaResultTransformer;
+import ru.serge2nd.octopussy.spi.TableTransformer;
 
 import java.sql.*;
 import java.util.List;
 
 @Slf4j
-public class JpaResultToListTransformer implements JpaResultTransformer {
+public class TableToListTransformer implements TableTransformer {
 
     @Override
     public Object transform(@NonNull Object[] tuple, String[] aliases) {

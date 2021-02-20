@@ -10,6 +10,9 @@ import java.util.function.Function;
 
 import static ru.serge2nd.octopussy.service.ex.DataKitException.errDataKitClosed;
 
+/**
+ * A {@link DataKit} proxy lazily instantiating its target.
+ */
 @Slf4j
 public class DataKitProxy implements DataKit {
     private final DataKitDefinition definition;
@@ -34,25 +37,25 @@ public class DataKitProxy implements DataKit {
     public <T>             T unwrap(Class<T> t) { return DataKitProxy.class.isAssignableFrom(t) ? t.cast(this) : getTarget().unwrap(t); }
     @Override
     public boolean           isClosed()         { return this.closed; }
+
     @Override
-    public void              close()            {
+    public void close() {
         if (!isClosed()) {
             String id = definition.getKitId();
             log.debug("closing the data kit " + id + "...");
+            executor.apply(id, DataKitProxy.class, p -> {doClose(p); return null;});
+        }
+    }
+    protected void doClose(DataKitProxy proxy) {
+        String id = definition.getKitId();
+        proxy.checkProxyActive(this, id);
 
-            executor.apply(id, DataKitProxy.class, proxy -> {
-                proxy.checkProxyActive(this, id);
-
-                if (!proxy.isClosed()) {
-                    proxy.closed = true;
-                    DataKit target = proxy.target;
-                    if (target != null) target.close();
-                } else {
-                    log.debug(id + " was closed by another thread");
-                }
-
-                return null;
-            });
+        if (!proxy.isClosed()) {
+            proxy.closed = true;
+            DataKit target = proxy.target;
+            if (target != null) target.close();
+        } else {
+            log.debug(id + " was closed by another thread");
         }
     }
 
@@ -62,21 +65,22 @@ public class DataKitProxy implements DataKit {
 
         String id = definition.getKitId();
         log.debug("trying on-demand initialization of the data kit " + id + "...");
+        return executor.apply(id, DataKitProxy.class, this::doGetTarget);
+    }
+    protected DataKit doGetTarget(DataKitProxy proxy) {
+        String id = definition.getKitId();
+        proxy.checkProxyActive(this, id);
+        proxy.checkOpen();
 
-        return executor.apply(id, DataKitProxy.class, proxy -> {
-            proxy.checkProxyActive(this, id);
-            proxy.checkOpen();
+        DataKit target = proxy.target;
 
-            DataKit target = proxy.target;
+        if (target == null) {
+            proxy.target = target = dataKitFactory.apply(proxy.definition);
+        } else {
+            log.debug(id + " was initialized by another thread");
+        }
 
-            if (target == null) {
-                proxy.target = target = dataKitFactory.apply(proxy.definition);
-            } else {
-                log.debug(id + " was initialized by another thread");
-            }
-
-            return target;
-        });
+        return target;
     }
 
     private void checkOpen() {

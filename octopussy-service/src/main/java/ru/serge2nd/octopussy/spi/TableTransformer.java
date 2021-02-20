@@ -2,8 +2,8 @@ package ru.serge2nd.octopussy.spi;
 
 import java.util.List;
 
-/** JPA query result transformer. */
-public interface JpaResultTransformer {
+/** A transformer of a table (list of tuples). */
+public interface TableTransformer {
 
     Object transform(Object[] tuple, String[] aliases);
 

@@ -9,9 +9,7 @@ import org.junit.jupiter.api.TestInstance.Lifecycle;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.cache.Cache;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.ContextHierarchy;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -21,7 +19,6 @@ import ru.serge2nd.octopussy.SpringBootSoftTest;
 import ru.serge2nd.octopussy.TestCommonConfig;
 import ru.serge2nd.octopussy.spi.DataKitExecutor;
 import ru.serge2nd.octopussy.spi.DataKitService;
-import ru.serge2nd.octopussy.spi.NativeQueryAdapter;
 import ru.serge2nd.octopussy.spi.NativeQueryAdapterProvider;
 import ru.serge2nd.octopussy.util.QueryWithParams;
 
@@ -34,16 +31,11 @@ import java.util.stream.Stream;
 
 import static java.util.Collections.emptyMap;
 import static javax.persistence.SynchronizationType.SYNCHRONIZED;
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Answers.RETURNS_DEEP_STUBS;
 import static org.mockito.Answers.RETURNS_SELF;
 import static org.mockito.Mockito.*;
 import static org.springframework.transaction.TransactionDefinition.*;
-import static ru.serge2nd.octopussy.App.QUERY_ADAPTERS_CACHE;
 import static ru.serge2nd.octopussy.support.DataKitDefinitionTest.DEF;
 import static ru.serge2nd.octopussy.support.DataKitDefinitionTest.ID;
 import static ru.serge2nd.octopussy.util.Queries.queries;
@@ -61,7 +53,6 @@ class NativeQueryAdapterImplTransactionTest implements BaseContextTest {
     @Autowired NativeQueryAdapterProvider adapterProvider;
     @MockBean(name = "dataKitService") DataKitServiceMock serviceMock;
     @MockBean Function<EntityManagerFactory, PlatformTransactionManager> tmProviderMock;
-    @Value("#{cacheManager.getCache('"+QUERY_ADAPTERS_CACHE+"')}") Cache queryAdaptersCache;
 
     @Mock(answer = RETURNS_DEEP_STUBS) EntityManagerFactory emfMock;
     @Mock(answer = RETURNS_DEEP_STUBS) PlatformTransactionManager tmMock;
@@ -70,33 +61,7 @@ class NativeQueryAdapterImplTransactionTest implements BaseContextTest {
     JpaKitImpl jpaKit;
 
     @PostConstruct void init() { jpaKit = new JpaKitImpl(DEF, null, emfMock); }
-    @BeforeEach void setUp() { queryAdaptersCache.clear(); reset(tmProviderMock, tmMock); }
-
-    @Test
-    void testGetQueryAdapter() {
-        // GIVEN
-        mockDataKitService(); mockTransactionManager();
-
-        // WHEN
-        NativeQueryAdapter queryAdapter = adapterProvider.getQueryAdapter(ID);
-
-        // THEN
-        assertSame(queryAdapter, queryAdaptersCache.get(ID, NativeQueryAdapter.class), "expected to be cached");
-    }
-
-    @Test
-    void testGetQueryAdapterCached() {
-        // GIVEN
-        mockDataKitService(); mockTransactionManager();
-        NativeQueryAdapter queryAdapterMock = mock(NativeQueryAdapter.class);
-        queryAdaptersCache.put(ID, queryAdapterMock);
-
-        // WHEN
-        NativeQueryAdapter queryAdapter = adapterProvider.getQueryAdapter(ID);
-
-        // THEN
-        assertSame(queryAdapterMock, queryAdapter, "expected cached object");
-    }
+    @BeforeEach void setUp() { reset(tmProviderMock, tmMock); }
 
     @Test
     void testExecuteTransactional() {
@@ -133,10 +98,11 @@ class NativeQueryAdapterImplTransactionTest implements BaseContextTest {
         ));
     }
 
-    @SuppressWarnings("deprecation")
+    @SuppressWarnings("unchecked,deprecation")
     void mockQuery(Function<Query<?>, Object> toMock, Object toReturn) {
-        mockDataKitService();
-        mockTransactionManager();
+        when(serviceMock.apply(eq(ID), same(EntityManagerFactory.class), any(Function.class)))
+                .thenAnswer(i -> i.getArgument(2, Function.class).apply(emfMock));
+        when(tmProviderMock.apply(same(emfMock))).thenReturn(tmMock);
 
         when(emfMock.isOpen()).thenReturn(true);
         when(emfMock.createEntityManager(SYNCHRONIZED).createNativeQuery(Q)).thenReturn(queryMock);
@@ -145,13 +111,6 @@ class NativeQueryAdapterImplTransactionTest implements BaseContextTest {
                 .setResultTransformer(any(ResultTransformer.class))))
                 .thenReturn(toReturn);
     }
-
-    @SuppressWarnings("unchecked")
-    void mockDataKitService() {
-        when(serviceMock.apply(eq(ID), same(EntityManagerFactory.class), any(Function.class)))
-                .thenAnswer(i -> i.getArgument(2, Function.class).apply(emfMock));
-    }
-    void mockTransactionManager() { when(tmProviderMock.apply(same(emfMock))).thenReturn(tmMock); }
 
     void capture(Consumer<TransactionDefinition> consumer) {
         ArgumentCaptor<TransactionDefinition> tx = ArgumentCaptor.forClass(TransactionDefinition.class);
