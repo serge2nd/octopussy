@@ -36,7 +36,7 @@ class JpaKitConfigNoCtxTest {
             .defaultAnswer(RETURNS_DEEP_STUBS));
 
     @BeforeAll void beforeAll() {
-        when(cfg.dataKitService().apply(eq(ID), same(EntityManagerFactory.class), any(Function.class)))
+        when(cfg.dataKitService().on(eq(ID), same(EntityManagerFactory.class), any(Function.class)))
                 .thenAnswer(i -> i.getArgument(2, Function.class).apply(emfMock));
         when(cfg.getQueryAdapter(ID)).thenCallRealMethod();
     }

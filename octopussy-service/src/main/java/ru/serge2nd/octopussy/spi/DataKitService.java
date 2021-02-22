@@ -8,7 +8,7 @@ import java.util.concurrent.Executor;
 import java.util.function.Function;
 
 /**
- * Creates, obtains, performs actions on, removes {@link DataKit} instances.
+ * Creates, obtains, removes {@link DataKit} instances.
  */
 public interface DataKitService {
 

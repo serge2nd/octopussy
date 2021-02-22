@@ -10,10 +10,10 @@ import static ru.serge2nd.test.match.CoreMatch.sameAs;
 public class Matchers {
 
     public static Matcher<DataKit> isClosed() {
-        return new MatcherBuilder<DataKit>(){}.matchIf(DataKit::isClosed).append("data track is closed").alert("was open").build();
+        return new MatcherBuilder<DataKit>(){}.matchIf(DataKit::isClosed).append("data kit is closed").alert("was open").build();
     }
     public static Matcher<DataKit> isOpen() {
-        return new MatcherBuilder<DataKit>(){}.matchIf(not(DataKit::isClosed)).append("data track is open").alert("was closed").build();
+        return new MatcherBuilder<DataKit>(){}.matchIf(not(DataKit::isClosed)).append("data kit is open").alert("was closed").build();
     }
 
     public static Matcher<DataKitProxy> hasTarget(DataKit expected) {

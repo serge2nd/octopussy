@@ -47,89 +47,84 @@ class InMemoryDataKitsTest {
     final DataKit DATA_KIT = dataKit(ID1);
     final DataKit EXISTING = spy(dataKit(ID2));
     final Map<String, DataKit> INITIAL = singletonMap(ID2, EXISTING);
-    final Map<String, DataKit> REPO    = new ConcurrentHashMap<>(INITIAL);
+    final Map<String, DataKit> REPO    = new HashMap<>(INITIAL);
+    final Map<String, DataKit> CC_REPO = new ConcurrentHashMap<>(INITIAL);
 
-    final DataKit          prototypeMock  = mock(DataKit.class, RETURNS_DEEP_STUBS);
-    final InMemoryDataKits dataKitService = new InMemoryDataKits(REPO, prototypeMock);
+    final DataKit          prototypeMock = mock(DataKit.class, RETURNS_DEEP_STUBS);
+    final InMemoryDataKits service       = new InMemoryDataKits(REPO, prototypeMock);
+    final InMemoryDataKits ccService     = new InMemoryDataKits(CC_REPO, prototypeMock);
 
     @BeforeEach void setUp() {
         REPO.clear(); REPO.putAll(INITIAL);
         reset(EXISTING, prototypeMock);
     }
+    void resetCcRepo() { CC_REPO.clear(); CC_REPO.putAll(INITIAL); }
 
-    @Test
-    void testGet() {
+    @Test void testGet() {
         // WHEN
-        DataKit result = dataKitService.get(ID2);
+        DataKit result = service.get(ID2);
 
         /* THEN */ assertThat(
         result, sameAs(EXISTING),
         REPO  , equalTo(INITIAL));
     }
 
-    @Test
-    void testGetNotFound() {
+    @Test void testGetNotFound() {
         assertThat(
-        ()-> dataKitService.get(ID1), fails(DataKitException.NotFound.class),
-        REPO                        , equalTo(INITIAL));
+        ()->service.get(ID1), fails(DataKitException.NotFound.class),
+        REPO                , equalTo(INITIAL));
     }
 
-    @Test
-    void testFind() {
+    @Test void testFind() {
         // GIVEN
         REPO.put(ID1, DATA_KIT);
 
         // WHEN
-        Optional<DataKit> result = dataKitService.find(ID1);
+        Optional<DataKit> result = service.find(ID1);
 
         /* THEN */ assertThat(
         result, presentedSame(DATA_KIT),
         REPO  , equalTo(properties(ID1, DATA_KIT, ID2, EXISTING)));
     }
 
-    @Test
-    void testFindNotFound() {
+    @Test void testFindNotFound() {
         // WHEN
-        Optional<DataKit> result = dataKitService.find(ID1);
+        Optional<DataKit> result = service.find(ID1);
 
         /* THEN */ assertThat(
         result, absent(),
         REPO  , equalTo(INITIAL));
     }
 
-    @Test
-    void testGetAll() {
+    @Test void testGetAll() {
         // GIVEN
         REPO.put(ID1, DATA_KIT);
 
         // WHEN
-        List<DataKit> result = collect(dataKitService.getAll(), toList(0));
+        List<DataKit> result = collect(service.getAll(), toList(0));
 
         // THEN
         assertEquals(newSet(DATA_KIT, EXISTING), new HashSet<>(result), "expected all from repository");
     }
 
-    @Test
-    void testDoWith() {
+    @Test void testDoWith() {
         // GIVEN
         Function<DataKit, String> action = dataKit -> dataKit.getDefinition().toString();
         String expected = EXISTING.getDefinition().toString();
 
         // WHEN
-        String result = dataKitService.apply(ID2, action);
+        String result = service.on(ID2, action);
 
         /* THEN */ assertThat(
         result, equalTo(expected),
         REPO  , equalTo(INITIAL));
     }
 
-    @Test
-    void testDoWithNotFound() {
-        assertThat(()->dataKitService.apply(ID1, $->$), fails(DataKitException.NotFound.class));
+    @Test void testDoWithNotFound() {
+        assertThat(()->service.on(ID1, $->$), fails(DataKitException.NotFound.class));
     }
 
-    @Test
-    void testCreate() {
+    @Test void testCreate() {
         // GIVEN
         DataKit expected = mock(DataKit.class);
         when(prototypeMock.toBuilder()
@@ -137,74 +132,71 @@ class InMemoryDataKitsTest {
                 .thenReturn(expected);
 
         // WHEN
-        DataKit created = dataKitService.create(DATA_KIT);
+        DataKit created = service.create(DATA_KIT);
 
         /* THEN */ assertThat(
         created, sameAs(expected),
         REPO   , equalTo(properties(ID1, created, ID2, EXISTING)));
     }
 
-    @Test
-    void testCreateAlreadyExists() {
+    @Test void testCreateAlreadyExists() {
         assertThat(
-        ()->dataKitService.create(dataKit(ID2)), fails(DataKitException.Exists.class),
-        REPO                                   , equalTo(INITIAL));
+        ()->service.create(dataKit(ID2)), fails(DataKitException.Exists.class),
+        REPO                            , equalTo(INITIAL));
     }
 
-    @Test
-    void testDelete() {
+    @Test void testDelete() {
         // GIVEN
         REPO.put(ID1, DATA_KIT);
 
         // WHEN
-        dataKitService.delete(ID2);
+        service.delete(ID2);
 
         /* THEN */ assertEach(() ->
         assertEquals(singletonMap(ID1, DATA_KIT), REPO, "expected one element left"), () ->
         verify(EXISTING, times(1)).close());
     }
 
-    @Test
-    void testDeleteNotFound() {
+    @Test void testDeleteNotFound() {
         assertThat(
-        ()->dataKitService.delete(ID1), fails(DataKitException.NotFound.class),
-        REPO                          , equalTo(INITIAL));
+        ()-> service.delete(ID1), fails(DataKitException.NotFound.class),
+        REPO                    , equalTo(INITIAL));
     }
 
-    @Test
-    void testLockOnCreate() {
+    @Test void testLockOnCreate() {
+        resetCcRepo();
         CountDownLatch freeLocks = new CountDownLatch(1);
-        doAnswer(i -> waitOn(dataKitService, freeLocks)).when(prototypeMock).toBuilder();
-        runAsyncAndDelayOn(dataKitService, () -> dataKitService.create(DATA_KIT), freeLocks);
+        doAnswer(i -> waitOn(ccService, freeLocks)).when(prototypeMock).toBuilder();
+        runAsyncAndDelayOn(ccService, () -> ccService.create(DATA_KIT), freeLocks);
 
         assertTimeoutAndRelease(() ->
-            supplyAsync(() -> dataKitService
-            .apply(ID1, e -> e))
-            .get(TIMEOUT, MILLISECONDS), dataKitService);
+            supplyAsync(() -> ccService
+            .on(ID1, e -> e))
+            .get(TIMEOUT, MILLISECONDS), ccService);
     }
 
-    @Test
-    void testLockOnDoWith() {
+    @Test void testLockOnDoWith() {
+        resetCcRepo();
         CountDownLatch freeLocks = new CountDownLatch(1);
-        runAsyncAndDelayOn(dataKitService, () ->
-            dataKitService.apply(ID2, $ -> waitOn(dataKitService, freeLocks)), freeLocks);
+        runAsyncAndDelayOn(ccService, () ->
+            ccService.on(ID2, $ -> waitOn(ccService, freeLocks)), freeLocks);
 
         assertTimeoutAndRelease(() ->
-            runAsync(() -> dataKitService
+            runAsync(() -> ccService
             .delete(ID2))
-            .get(TIMEOUT, MILLISECONDS), dataKitService);
+            .get(TIMEOUT, MILLISECONDS), ccService);
     }
 
-    @Test
-    void testLockOnDelete() {
+    @Test void testLockOnDelete() {
+        resetCcRepo();
         CountDownLatch freeLocks = new CountDownLatch(1);
-        doAnswer(i -> waitOn(dataKitService, freeLocks)).when(EXISTING).close();
-        runAsyncAndDelayOn(dataKitService, () -> dataKitService.delete(ID2), freeLocks);
+        doAnswer(i -> waitOn(ccService, freeLocks)).when(EXISTING).close();
+        runAsyncAndDelayOn(ccService, () -> ccService.delete(ID2), freeLocks);
 
         assertTimeoutAndRelease(() ->
-            supplyAsync(() -> dataKitService
+            supplyAsync(() -> ccService
             .create(EXISTING))
-            .get(TIMEOUT, MILLISECONDS), dataKitService);
+            .get(TIMEOUT, MILLISECONDS), ccService);
     }
 
     @SneakyThrows

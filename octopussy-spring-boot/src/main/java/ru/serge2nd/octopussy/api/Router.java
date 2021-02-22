@@ -68,8 +68,7 @@ public class Router {
         })
 
         .DELETE(DATA_KIT_BY_ID,
-        rq -> {
-            dataKitService.delete(dataKitId(rq)); return noContent().build();})
+        rq -> {dataKitService.delete(dataKitId(rq)); return noContent().build();})
         //endregion
 
         //region Queries

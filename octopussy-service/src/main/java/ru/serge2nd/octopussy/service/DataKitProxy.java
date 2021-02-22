@@ -32,30 +32,32 @@ public class DataKitProxy implements DataKit {
     }
 
     @Override
-    public DataKitDefinition getDefinition()    { return this.definition; }
+    public final DataKitDefinition getDefinition()    { return this.definition; }
     @Override
-    public <T>             T unwrap(Class<T> t) { return DataKitProxy.class.isAssignableFrom(t) ? t.cast(this) : getTarget().unwrap(t); }
+    public final boolean           isClosed()         { return this.closed; }
     @Override
-    public boolean           isClosed()         { return this.closed; }
+    public final <T> T             unwrap(Class<T> t) { return DataKitProxy.class.isAssignableFrom(t) ? t.cast(this) : getTarget().unwrap(t); }
 
     @Override
     public void close() {
         if (!isClosed()) {
             String id = definition.getKitId();
-            log.debug("closing the data kit " + id + "...");
-            executor.apply(id, DataKitProxy.class, p -> {doClose(p); return null;});
+            log.trace("acquiring the data kit {} to close...", id);
+            executor.on(id, DataKitProxy.class, p -> {doClose(p); return null;});
         }
     }
+    /** Run in {@link #executor} */
     protected void doClose(DataKitProxy proxy) {
         String id = definition.getKitId();
-        proxy.checkProxyActive(this, id);
+        proxy.checkSame(this, id);
 
         if (!proxy.isClosed()) {
+            log.debug("closing the data kit {}...", id);
             proxy.closed = true;
             DataKit target = proxy.target;
             if (target != null) target.close();
         } else {
-            log.debug(id + " was closed by another thread");
+            log.trace("{} was closed by another thread", id);
         }
     }
 
@@ -64,20 +66,22 @@ public class DataKitProxy implements DataKit {
         if (target != null) return target;
 
         String id = definition.getKitId();
-        log.debug("trying on-demand initialization of the data kit " + id + "...");
-        return executor.apply(id, DataKitProxy.class, this::doGetTarget);
+        log.trace("acquiring the data kit {} to init...", id);
+        return executor.on(id, DataKitProxy.class, this::doGetTarget);
     }
+    /** Run in {@link #executor} */
     protected DataKit doGetTarget(DataKitProxy proxy) {
         String id = definition.getKitId();
-        proxy.checkProxyActive(this, id);
+        proxy.checkSame(this, id);
         proxy.checkOpen();
 
         DataKit target = proxy.target;
 
         if (target == null) {
+            log.debug("initializing the data kit {}...", id);
             proxy.target = target = dataKitFactory.apply(proxy.definition);
         } else {
-            log.debug(id + " was initialized by another thread");
+            log.trace("{} was initialized by another thread", id);
         }
 
         return target;
@@ -86,8 +90,8 @@ public class DataKitProxy implements DataKit {
     private void checkOpen() {
         if (isClosed()) throw errDataKitClosed(definition.getKitId());
     }
-    private void checkProxyActive(DataKit active, String id) {
-        if (this != active) throw new IllegalStateException(id + ": proxy not active");
+    private void checkSame(DataKit active, String id) {
+        if (this != active) throw new IllegalStateException(id + ": multiple proxies");
     }
 
     public static class DataKitProxyBuilder implements DataKitBuilder {

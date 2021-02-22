@@ -1,5 +1,8 @@
 package ru.serge2nd.octopussy.spi;
 
+/**
+ * @see NativeQueryAdapter
+ */
 public interface NativeQueryAdapterProvider {
 
     NativeQueryAdapter getQueryAdapter(String kitId);

@@ -52,7 +52,7 @@ public class JpaKitImpl implements JpaKit {
             if (entityManagerFactory != null)
                 entityManagerFactory.close();
         } catch (Exception e) {
-            log.warn("the data kit {} probably already closed ({})", definition.getKitId(), e.getMessage(), e);
+            log.warn("the data kit {} probably already closed, see the error below", definition.getKitId(), e);
         }
     }}
 

@@ -100,7 +100,7 @@ class NativeQueryAdapterImplTransactionTest implements BaseContextTest {
 
     @SuppressWarnings("unchecked,deprecation")
     void mockQuery(Function<Query<?>, Object> toMock, Object toReturn) {
-        when(serviceMock.apply(eq(ID), same(EntityManagerFactory.class), any(Function.class)))
+        when(serviceMock.on(eq(ID), same(EntityManagerFactory.class), any(Function.class)))
                 .thenAnswer(i -> i.getArgument(2, Function.class).apply(emfMock));
         when(tmProviderMock.apply(same(emfMock))).thenReturn(tmMock);
 

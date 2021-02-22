@@ -40,14 +40,14 @@ public class JpaKitConfig implements NativeQueryAdapterProvider {
 
     //region Beans
 
+    @Immutable@Bean @ConfigurationProperties("octps.data.kit.arg.mapping")
+    Map<String, String> propertyMappings() { return new HashMap<>(); }
+
     @Bean(destroyMethod = "close")
     @SuppressWarnings("unchecked")
     <T extends DataKitService & DataKitExecutor> T dataKitService() {
         return (T)new InMemoryDataKits(new ConcurrentHashMap<>(), new JpaKitProto(this));
     }
-
-    @Immutable@Bean @ConfigurationProperties("octps.data.kit.arg.mapping")
-    Map<String, String> propertyMappings() { return new HashMap<>(); }
 
     @Bean Function<EntityManagerFactory, PlatformTransactionManager> txManagerProvider() {
         return emf -> new HibernateTransactionManager(emf.unwrap(SessionFactory.class));
@@ -58,7 +58,7 @@ public class JpaKitConfig implements NativeQueryAdapterProvider {
 
     @Override
     public NativeQueryAdapter getQueryAdapter(String id) {
-        return dataKitService().apply(id, EntityManagerFactory.class, emf -> {
+        return dataKitService().on(id, EntityManagerFactory.class, emf -> {
             NativeQueryAdapter cached = queryAdaptersCache.get(id, NativeQueryAdapter.class);
             if (cached != null) return cached;
 

@@ -55,7 +55,9 @@ public class App {
                 .run(args);
     }
 
-    @Bean(QUERY_ADAPTERS_CACHE) Cache queryAdaptersCache() { return new ConcurrentMapCache(QUERY_ADAPTERS_CACHE, false); }
+    @Bean(QUERY_ADAPTERS_CACHE) Cache queryAdaptersCache() {
+        return new ConcurrentMapCache(QUERY_ADAPTERS_CACHE, false);
+    }
 
     @Bean BiFunction<Type, Object, ?> wrapper() {
         return (type, bean) -> type != null

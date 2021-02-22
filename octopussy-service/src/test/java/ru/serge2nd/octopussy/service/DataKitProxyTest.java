@@ -32,9 +32,9 @@ import static ru.serge2nd.test.match.CoreMatch.illegalState;
 @ExtendWith(MockitoExtension.class)
 @TestInstance(Lifecycle.PER_CLASS)
 public class DataKitProxyTest {
-    @Mock                              DataKitProxy dataKitMock;
-    @Mock
-    DataKitExecutor serviceMock;
+    @Mock                              DataKit dataKitMock;
+    @Mock                              DataKitProxy proxyMock;
+    @Mock                              DataKitExecutor serviceMock;
     @Mock(answer = RETURNS_DEEP_STUBS) DataKitFactory factoryMock;
 
     DataKitProxy proxy;
@@ -59,12 +59,13 @@ public class DataKitProxyTest {
     }
 
     @Test void testGetTargetCheckProxyActive() {
-        enableWorker(() -> {}, dataKitMock);
+        enableWorker(() -> {}, proxyMock);
 
         assertThat(
         proxy::getTarget, illegalState(),
         proxy           , isOpen(),
-        proxy           , noTarget());
+        proxy           , noTarget(), () ->
+        verifyNoInteractions(proxyMock));
     }
 
     @Test void testGetTargetNotNull() {
@@ -103,13 +104,13 @@ public class DataKitProxyTest {
     }
 
     @Test void testCloseCheckProxyActive() {
-        enableWorker(() -> {}, dataKitMock);
+        enableWorker(() -> {}, proxyMock);
         proxy.target = dataKitMock;
 
         assertThat(
         proxy::close, illegalState(),
         proxy       , isOpen(), () ->
-        verifyNoInteractions(dataKitMock));
+        verifyNoInteractions(dataKitMock, proxyMock));
     }
 
     @Test void testAlreadyClosed() {
@@ -167,12 +168,12 @@ public class DataKitProxyTest {
 
     @SuppressWarnings("unchecked")
     void mockWorker(Consumer<InvocationOnMock> invocationConsumer) {
-        when(serviceMock.apply(eq(ID), same(DataKitProxy.class), any(Function.class)))
+        when(serviceMock.on(eq(ID), same(DataKitProxy.class), any(Function.class)))
         .thenAnswer(i -> {invocationConsumer.accept(i); return null;});
     }
     @SuppressWarnings("unchecked")
     void enableWorker(Runnable pre, DataKit arg) {
-        when(serviceMock.apply(eq(ID), same(DataKitProxy.class), any(Function.class)))
+        when(serviceMock.on(eq(ID), same(DataKitProxy.class), any(Function.class)))
         .thenAnswer(i -> {
             pre.run();
             return i.getArgument(2, Function.class).apply(arg);
