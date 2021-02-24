@@ -1,6 +1,5 @@
 *
-!lib/
-!ext/
+!${lib.dir}/
 !${dist.file}
 !docker-entrypoint.sh
 !Dockerfile

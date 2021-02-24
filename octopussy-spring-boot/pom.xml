@@ -136,9 +136,9 @@
                     <phase>package</phase>
                     <goals><goal>copy-dependencies</goal></goals>
                     <configuration>
-                        <excludeArtifactIds>spring-boot-loader</excludeArtifactIds>
-                        <excludeTypes>test-jar</excludeTypes>
-                        <outputDirectory>${project.build.directory}/lib</outputDirectory>
+                        <excludeArtifactIds>lombok,spring-boot-loader</excludeArtifactIds>
+                        <includeScope>compile</includeScope>
+                        <outputDirectory>${project.build.directory}/${lib.dir}</outputDirectory>
                     </configuration>
                 </execution></executions>
             </plugin>
@@ -175,7 +175,7 @@
                 </manifestEntries><manifest>
                     <mainClass>org.springframework.boot.loader.PropertiesLauncher</mainClass>
                     <addClasspath>true</addClasspath>
-                    <classpathPrefix>lib/</classpathPrefix>
+                    <classpathPrefix>${lib.dir}/</classpathPrefix>
                     <useUniqueVersions>false</useUniqueVersions>
                 </manifest>
                 </archive></configuration>
@@ -219,5 +219,6 @@
     <properties>
         <dist.clf>dist</dist.clf>
         <dist.file>${project.build.finalName}-${dist.clf}.jar</dist.file>
+        <lib.dir>libs</lib.dir>
     </properties>
 </project>

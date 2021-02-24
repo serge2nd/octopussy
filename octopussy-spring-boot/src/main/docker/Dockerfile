@@ -2,11 +2,11 @@ ARG JRE_IMAGE=adoptopenjdk/openjdk11:alpine-jre
 FROM $JRE_IMAGE
 
 ENV \
-EXT_DIR=/ext \
-JVM_OPTS=-Xmx1536M
+JDBC_DRIVER_URLS="" \
+JVM_OPTS="-Xmx1536M"
 
-ADD . /
-RUN ln -s /docker-entrypoint.sh /usr/local/bin/
+ADD ${lib.dir} /${lib.dir}/
+ADD ${dist.file} docker-entrypoint.sh /
 
-ENTRYPOINT ["docker-entrypoint.sh"]
+ENTRYPOINT ["/docker-entrypoint.sh"]
 EXPOSE 8080
