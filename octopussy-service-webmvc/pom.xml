@@ -8,14 +8,14 @@
         <artifactId>octopussy</artifactId>
         <version>0.9.0-SNAPSHOT</version>
     </parent>
-    <artifactId>octopussy-spring-boot</artifactId>
+    <artifactId>octopussy-service-webmvc</artifactId>
     <packaging>jar</packaging>
 
     <dependencies>
         <!--region MAIN dependencies -->
         <dependency>
             <groupId>${project.groupId}</groupId>
-            <artifactId>octopussy-service</artifactId>
+            <artifactId>octopussy-core</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
@@ -88,7 +88,7 @@
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
-            <artifactId>octopussy-service</artifactId>
+            <artifactId>octopussy-core</artifactId>
             <version>${project.version}</version>
             <classifier>tests</classifier>
             <scope>test</scope>
