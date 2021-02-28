@@ -15,7 +15,7 @@ import static ru.serge2nd.octopussy.AppContractsTesting.contract
                 ]
             )
         }
-        CREATED {
+        '201 Created' {
             body(
                 kitId: ID2,
                 properties: [
@@ -34,7 +34,7 @@ import static ru.serge2nd.octopussy.AppContractsTesting.contract
                 ]
             )
         }
-        BAD_REQUEST {
+        '400 Bad Request' {
             body(
                 method  : 'POST',
                 url     : regex(".*/$DATA_KITS"),
@@ -50,7 +50,7 @@ import static ru.serge2nd.octopussy.AppContractsTesting.contract
         $"POST /$DATA_KITS", {
             body {}
         }
-        BAD_REQUEST {
+        '400 Bad Request' {
             body(
                 method  : 'POST',
                 url     : regex(".*/$DATA_KITS"),

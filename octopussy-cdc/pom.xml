@@ -106,7 +106,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <groovy.version>2.5.14</groovy.version>
-        <spring-boot.version>2.4.2</spring-boot.version>
+        <spring-boot.version>2.4.3</spring-boot.version>
         <spring-cloud.version>Hoxton.SR10</spring-cloud.version>
 
         <gmavenplus-plugin.version>1.12.1</gmavenplus-plugin.version>

@@ -7,7 +7,7 @@ import static ru.serge2nd.octopussy.AppContractsTesting.contract
 [
     contract('getAllDataKits') {
         $"GET /$DATA_KITS", {}
-        OK {
+        '200 OK' {
             body([[
                 kitId: ID,
                 properties: [
@@ -25,7 +25,7 @@ import static ru.serge2nd.octopussy.AppContractsTesting.contract
 
     contract('getDataKit') {
         $"GET /$DATA_KITS/$ID", {}
-        OK {
+        '200 OK' {
             body(
                 kitId: ID,
                 properties: [
@@ -38,7 +38,7 @@ import static ru.serge2nd.octopussy.AppContractsTesting.contract
 
     contract('getDataKitNotFound') {
         $"GET /$DATA_KITS/$ID2", {}
-        NOT_FOUND {
+        '404 Not Found' {
             body(
                 method : 'GET',
                 url    : regex(".*/$DATA_KITS/$ID2"),

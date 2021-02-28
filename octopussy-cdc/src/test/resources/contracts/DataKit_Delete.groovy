@@ -7,12 +7,12 @@ import static ru.serge2nd.octopussy.AppContractsTesting.contract
 [
     contract('deleteDataKit') {
         $"DELETE /$DATA_KITS/$ID", {}
-        NO_CONTENT {}
+        '204 No Content' {}
     },
 
     contract('deleteDataKitNotFound') {
         $"DELETE /$DATA_KITS/$ID2", {}
-        NOT_FOUND {
+        '404 Not Found' {
             body(
                 method  : 'DELETE',
                 url     : regex(".*/$DATA_KITS/$ID2"),

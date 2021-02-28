@@ -25,7 +25,7 @@ import static ru.serge2nd.octopussy.AppContractsTesting.contract
                 ]
             )
         }
-        OK {
+        '200 OK' {
             body RS
         }
     },
@@ -34,12 +34,12 @@ import static ru.serge2nd.octopussy.AppContractsTesting.contract
         $"POST /$DATA_KITS/$ID/$UPDATE", {
             body {}
         }
-        BAD_REQUEST {
+        '400 Bad Request' {
             body(
                 method  : 'POST',
                 url     : regex(".*/$DATA_KITS/$ID/$UPDATE"),
                 status  : SC_BAD_REQUEST.title,
-                code    : 'NOT_VALID:queries',
+                code    : 'NOT_VALID:queriesRq',
                 messages: ['err0']
             )
             notBlankMessages()

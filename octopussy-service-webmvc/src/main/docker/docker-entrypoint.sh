@@ -1,11 +1,13 @@
 #!/bin/sh
 set -exf
 
-ext0_dir=/extra0
-ext1_dir=/extra1
+# Directories to extend the app classpath
+ext0_dir=/extra0 # possible to mount RO
+ext1_dir=/extra1 # possible to mount RW ($EXT_URLS will be downloaded here)
 mkdir -p "$ext0_dir" "$ext1_dir"
 
-[ -n "$JDBC_DRIVER_URLS" ] && for url in $JDBC_DRIVER_URLS; do
+# Download extensions if specified but absent
+[ -n "$EXT_URLS" ] && for url in $EXT_URLS; do
     filepath="$ext1_dir/${url##*/}"
     [ -s "$filepath" ] || (wget -O "$filepath" "$url" || rm -f "$filepath")
 done

@@ -43,20 +43,20 @@ class ContractDslExtensions {
         }
     }
 
-    static void OK(Contract _, @D(Response) Closure r) {
+    static void '200 OK'(Contract _, @D(Response) Closure r) {
         rs _, OK.value(), r
     }
-    static void CREATED(Contract _, @D(Response) Closure r) {
+    static void '201 Created'(Contract _, @D(Response) Closure r) {
         rs _, CREATED.value(), r
     }
-    static void NO_CONTENT(Contract _, @D(Response) Closure r) {
+    static void '204 No Content'(Contract _, @D(Response) Closure r) {
         rs _, NO_CONTENT.value(), r
         _.response.body ''
     }
-    static void BAD_REQUEST(Contract _, @D(Response) Closure r) {
+    static void '400 Bad Request'(Contract _, @D(Response) Closure r) {
         rs _, BAD_REQUEST.value(), r
     }
-    static void NOT_FOUND(Contract _, @D(Response) Closure r) {
+    static void '404 Not Found'(Contract _, @D(Response) Closure r) {
         rs _, NOT_FOUND.value(), r
     }
 
