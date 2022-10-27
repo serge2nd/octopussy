@@ -1,5 +1,5 @@
 # octopussy [![JDK8](https://github.com/serge2nd/octopussy/workflows/JDK8/badge.svg)](https://github.com/serge2nd/octopussy/actions?query=workflow%3A%22JDK8%22) [![JDK11](https://github.com/serge2nd/octopussy/workflows/JDK11/badge.svg)](https://github.com/serge2nd/octopussy/actions?query=workflow%3A%22JDK11%22) [![JDK15](https://github.com/serge2nd/octopussy/workflows/JDK15/badge.svg)](https://github.com/serge2nd/octopussy/actions?query=workflow%3A%22JDK15%22) [![Coverage Status](https://coveralls.io/repos/github/serge2nd/octopussy/badge.svg?branch=develop)](https://coveralls.io/github/serge2nd/octopussy?branch=develop)
-**Note:** *This project is not maintained anymore. The further progress is made in [octopussy-v2][10].*
+**Note:** *This project is not maintained anymore.*
 
 Interfaces and components to interact with arbitrary hot-pluggable data sources (not necessary JDBC/JPA).
 In this project context the objects representing these data sources are called *data kits*.
@@ -39,7 +39,6 @@ or manually
 docker build -t octopussy octopussy-service-webmvc/target
 ```
 
-[10]: https://github.com/serge2nd/octopussy-v2
 [20]: ./octopussy-core
 [30]: ./octopussy-service-webmvc
 [40]: ./octopussy-cdc
